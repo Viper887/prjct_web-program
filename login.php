@@ -1,5 +1,5 @@
 <?php
-require 'config.php'; // Підключення до БД та запуск session_start()
+require 'config.php'; 
 
 $error = '';
 
@@ -7,19 +7,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Підготовка запиту для безпеки
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    // Перевірка чи існує користувач та чи вірний пароль
     if ($user && password_verify($password, $user['password'])) {
-        // Зберігаємо дані у сесію
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['name'] = $user['name'];
         $_SESSION['role'] = $user['role'];
         
-        // Перенаправлення на головну
         header("Location: index.php");
         exit();
     } else {
@@ -36,17 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="card" style="max-width: 400px; margin: 50px auto;">
+    <div class="auth-container"> <!-- Змінено клас на auth-container -->
         <h2>Вхід до системи</h2>
-        <?php if ($error): ?> <p style="color: red;"><?php echo $error; ?></p> <?php endif; ?>
+        <?php if ($error): ?> <p style="color: #a31d1d; margin-bottom: 10px;"><?php echo $error; ?></p> <?php endif; ?>
         
         <form method="POST">
-            <input type="email" name="email" placeholder="Email" required style="width: 100%; margin-bottom: 10px; display: block;">
-            <input type="password" name="password" placeholder="Пароль" required style="width: 100%; margin-bottom: 10px; display: block;">
-            <button type="submit" style="width: 100%;">Увійти</button>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Увійти</button>
         </form>
         
-        <p>Ще немає акаунту? <a href="register.php">Зареєструватися</a></p>
+        <p style="margin-top: 15px;">Ще немає акаунту? <a href="register.php" style="color: #a31d1d; font-weight: bold;">Зареєструватися</a></p>
     </div>
 </body>
 </html>

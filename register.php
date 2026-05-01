@@ -4,9 +4,7 @@ require 'config.php';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // 1. Серверна перевірка: чи не пусті поля
     if (!empty($_POST['name']) && !empty($_POST['email']) && !empty($_POST['password'])) {
-        
         $name = $_POST['name'];
         $email = $_POST['email'];
         $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -20,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } catch (PDOException $e) {
             $error = "Помилка: можливо, такий email вже зареєстрований.";
         }
-
     } else {
         $error = "Будь ласка, заповніть усі поля форми!";
     }
@@ -28,15 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
+    <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
     <title>Реєстрація</title>
 </head>
 <body>
-    <div class="card" style="max-width: 400px; margin: 50px auto;">
+    <div class="auth-container"> <!-- Змінено клас на auth-container -->
         <h2>Реєстрація</h2>
-        <?php if ($error) echo "<p style='color: #ff6b6b;'>$error</p>"; ?>
+        <?php if ($error) echo "<p style='color: #a31d1d; margin-bottom: 10px;'>$error</p>"; ?>
         
         <form method="POST">
             <input name="name" placeholder="Ім'я" required>
@@ -48,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </select>
             <button type="submit">Зареєструватися</button>
         </form>
+        <p style="margin-top: 15px;">Вже є акаунт? <a href="login.php" style="color: #a31d1d; font-weight: bold;">Увійти</a></p>
     </div>
 </body>
 </html>
