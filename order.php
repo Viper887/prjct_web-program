@@ -1,28 +1,18 @@
 <?php
-require 'config.php'; // Підключення бази та сесій
+require 'config.php';
 
-// --- 1. ПЕРШИЙ КОД (PHP функція для API) ---
-function getAreaInfo($areaId) {
+// Отримання списку всіх областей для вибору
+function getAllAreas() {
     $url = "https://decentralization.ua/graphql";
-    $query = '{area(id: "'.$areaId.'"){title, square, population, local_community_count}}';
-    
-    $options = [
-        'http' => [
-            'method'  => 'POST',
-            'header'  => "Content-Type: application/json\r\n",
-            'content' => json_encode(['query' => $query]),
-            'ignore_errors' => true
-        ]
-    ];
-    
-    $context  = stream_context_create($options);
+    $query = '{areas{id, title}}';
+    $options = ['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => json_encode(['query' => $query])]];
+    $context = stream_context_create($options);
     $result = @file_get_contents($url, false, $context);
-    return $result ? json_decode($result, true) : null;
+    return $result ? json_decode($result, true)['data']['areas'] : [];
 }
 
-// Отримуємо дані про Полтавську область (ID 16)
-$apiResponse = getAreaInfo("16");
-$areaData = $apiResponse['data']['area'] ?? null;
+$areas = getAllAreas();
+$product_id = $_GET['id'] ?? 0;
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +21,6 @@ $areaData = $apiResponse['data']['area'] ?? null;
     <meta charset="UTF-8">
     <title>Оформлення доставки</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Підключаємо бібліотеки для автозаповнення адрес -->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -40,35 +29,49 @@ $areaData = $apiResponse['data']['area'] ?? null;
 
 <div class="card">
     <h2>Оформлення замовлення</h2>
-
-    <?php if ($areaData): ?>
-        <p style="font-size: 0.85em; color: #8f94fb;">
-            Регіон: <strong><?php echo $areaData['title']; ?></strong><br>
-            Громад в області: <?php echo $areaData['local_community_count']; ?>
-        </p>
-    <?php endif; ?>
-
     <form action="save_order.php" method="POST">
-        <label>Введіть адресу в Полтаві:</label>
-        <!-- Поле з автозаповненням -->
-        <input type="text" id="address" name="address" placeholder="Почніть вводити назву вулиці..." required>
+        <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+
+        <label>Оберіть область:</label>
+        <select id="area_select" name="area_title" required>
+            <option value="">-- Оберіть область --</option>
+            <?php foreach ($areas as $area): ?>
+                <option value="<?php echo $area['title']; ?>" <?php echo ($area['id'] == 16) ? 'selected' : ''; ?>>
+                    <?php echo $area['title']; ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <label>Введіть місто та вулицю:</label>
+        <input type="text" id="address_input" name="address" placeholder="Наприклад: Полтава, вул. Соборності" required>
         
-        <input type="hidden" name="product_id" value="<?php echo $_GET['id'] ?? ''; ?>">
         <button type="submit">Підтвердити замовлення</button>
     </form>
-    
-    <a href="index.php">Скасувати</a>
+    <a href="index.php">Назад</a>
 </div>
 
 <script>
-// --- ІНТЕГРАЦІЯ АДРЕС ПОЛТАВИ ---
 $(function() {
-    // Завантажуємо твій файл streets.json
-    $.getJSON("streets.json", function(data) {
-        $("#address").autocomplete({
-            source: data,
-            minLength: 2 // Починати пошук після 2-х введених символів
-        });
+    $("#address_input").autocomplete({
+        source: function(request, response) {
+            let selectedArea = $("#area_select").val();
+            // Запит до OpenStreetMap Nominatim API
+            $.getJSON("https://nominatim.openstreetmap.org/search", {
+                q: request.term + ", " + selectedArea,
+                format: "json",
+                addressdetails: 1,
+                limit: 5,
+                "accept-language": "uk"
+            }, function(data) {
+                response($.map(data, function(item) {
+                    return {
+                        label: item.display_name,
+                        value: item.display_name
+                    };
+                }));
+            });
+        },
+        minLength: 3
     });
 });
 </script>

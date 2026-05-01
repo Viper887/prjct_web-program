@@ -1,88 +1,223 @@
-/* Основні налаштування */
+/* --- Глобальні налаштування --- */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color: #ffffff;
+    background-color: #e3dcd2; /* Світло-бежевий фон з макету */
+    color: #1a1a1a;
     min-height: 100vh;
-    padding: 20px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* Ефект матового скла (Glassmorphism) */
-.card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px); /* Це головна фішка */
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    margin: 15px;
+/* --- Хедер та Меню --- */
+.header-logo {
     width: 100%;
-    max-width: 500px;
+    background-color: #a31d1d; /* Темно-червоний колір бренду */
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Налаштування форм */
-form {
-    display: flex;
-    flex-direction: column;
+.header-logo h1 {
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.user-menu {
     width: 100%;
+    max-width: 1200px;
+    padding: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    font-size: 14px;
+}
+
+.user-menu a {
+    color: #a31d1d;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* --- Секція "About" (Craft Box Hero) --- */
+.about-box {
+    background: rgba(255, 255, 255, 0.4);
+    border: 3px solid #a31d1d; /* Рамка як на картинці */
+    border-radius: 8px;
+    padding: 40px;
+    margin: 20px;
+    max-width: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.about-content {
+    flex: 1.2;
+}
+
+.about-content h2 {
+    font-size: 56px;
+    font-weight: 900;
+    font-style: italic;
+    color: #000;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.about-content p {
+    font-size: 18px;
+    line-height: 1.5;
+    color: #222;
+    max-width: 450px;
+}
+
+.about-image {
+    flex: 0.8;
+    display: flex;
+    justify-content: center;
+}
+
+.about-image img {
+    max-width: 350px;
+    width: 100%;
+    height: auto;
+    /* Тінь для об'ємності продуктів */
+    filter: drop-shadow(10px 10px 20px rgba(0,0,0,0.15));
+}
+
+/* --- Каталог товарів --- */
+.catalog-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 50px 0 30px;
+    text-align: center;
+    width: 100%;
+}
+
+.products-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px 50px;
+}
+
+/* Картка товару (Glassmorphism + Modern) */
+.card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(163, 29, 29, 0.15);
+}
+
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 15px;
+    border-radius: 15px;
+}
+
+.card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #1a1a1a;
+}
+
+.price {
+    font-size: 22px;
+    font-weight: 800;
+    color: #a31d1d;
+    margin-bottom: 20px;
+}
+
+/* --- Кнопки та Форми --- */
+button, .buy-btn {
+    background: #a31d1d;
+    color: #fff !important;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: inline-block;
+    transition: background 0.3s;
+}
+
+button:hover, .buy-btn:hover {
+    background: #7e1616;
+}
+
+/* Контейнер для банера */
+.hero-banner {
+    width: 100%;
+    max-width: 1000px; /* Обмежуємо ширину, щоб не було на весь екран */
+    margin: 20px auto; /* Центруємо */
+    padding: 0 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Налаштування самого зображення */
+.hero-banner img {
+    width: 100%;      /* Розтягується на всю ширину контейнера (1000px) */
+    height: auto;     /* Зберігає пропорції, щоб не було розтягнутим */
+    border-radius: 12px; /* Закруглені кути для м'якості */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Легка тінь */
+    display: block;
 }
 
 input, select, textarea {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #333;
     padding: 12px;
     border-radius: 10px;
     margin-bottom: 15px;
     font-size: 16px;
+    width: 100%;
 }
 
-input::placeholder { color: rgba(255, 255, 255, 0.6); }
-
-/* Кнопки */
-button {
-    background: linear-gradient(45deg, #4e54c8, #8f94fb);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-button:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(143, 148, 251, 0.5);
-}
-
-/* Посилання */
-a {
-    color: #8f94fb;
-    text-decoration: none;
-    transition: 0.3s;
-}
-
-a:hover { color: #fff; text-decoration: underline; }
-
-h1 { margin-bottom: 30px; font-weight: 300; }
-
-/* Галерея товарів */
-.products-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    max-width: 1200px;
+/* --- Адаптивність (для мобілок) --- */
+@media (max-width: 850px) {
+    .about-box {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    
+    .about-content p {
+        max-width: 100%;
+    }
+    
+    .about-content h2 {
+        font-size: 40px;
+    }
 }
