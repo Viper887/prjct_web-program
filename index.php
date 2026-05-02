@@ -9,7 +9,7 @@
 <body>
 
     <div class="header-logo">
-        <h1>Kraft Box</h1>
+        <h1>Craft Box</h1>
     </div>
 
     <div class="user-menu">
@@ -26,7 +26,7 @@
 
 <!-- Оновлений блок Hero -->
 <div class="hero-banner">
-    <img src="uploads/own.png" alt="Kraft Box Banner">
+    <img src="uploads/own.png" alt="Craft Box Banner">
 </div>
     </div>
 
