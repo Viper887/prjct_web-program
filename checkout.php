@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </button>
                 
                 <div style="text-align: center; margin-top: 20px;">
-                    <a href="index.php" style="color: #666; text-decoration: none; font-size: 14px;">← Повернутися до кошика</a>
+                    <a href="index.php" style="color: #666; text-decoration: none; font-size: 14px;">← Повернутися на головну</a>
                 </div>
             </form>
         <?php endif; ?>

@@ -2,7 +2,6 @@
 require 'config.php'; 
 
 // --- ЛОГІКА КОШИКА ---
-// Додавання товару
 if (isset($_GET['add_to_cart'])) {
     $product_id = (int)$_GET['add_to_cart'];
     if (!isset($_SESSION['cart'])) {
@@ -17,7 +16,6 @@ if (isset($_GET['add_to_cart'])) {
     exit;
 }
 
-// Видалення товару
 if (isset($_GET['remove'])) {
     $remove_id = (int)$_GET['remove'];
     unset($_SESSION['cart'][$remove_id]);
@@ -34,8 +32,18 @@ if (isset($_GET['remove'])) {
 </head>
 <body>
 
+    <!-- Затемнення фону при відкритті кошика -->
+    <div id="cart-overlay" onclick="toggleCart()"></div>
+
     <div class="header-logo">
         <h1>Craft Box</h1>
+        <!-- Іконка кошика -->
+        <div class="cart-icon-wrapper" onclick="toggleCart()">
+            <img src="uploads/cart.png" alt="Кошик" class="cart-icon-svg">
+            <?php if (!empty($_SESSION['cart'])): ?>
+                <span class="cart-badge"><?php echo array_sum($_SESSION['cart']); ?></span>
+            <?php endif; ?>
+        </div>
     </div>
 
     <div class="user-menu">
@@ -50,39 +58,47 @@ if (isset($_GET['remove'])) {
         <?php endif; ?>
     </div>
 
-    <div class="hero-banner">
-        <img src="uploads/own.png" alt="Craft Box Banner">
+    <!-- ВИЇЗНЕ МЕНЮ КОШИКА -->
+    <div id="side-cart" class="side-cart">
+        <div class="side-cart-header">
+            <h3>Ваш кошик</h3>
+            <span class="close-cart" onclick="toggleCart()">&times;</span>
+        </div>
+        <div class="side-cart-content">
+            <?php if (!empty($_SESSION['cart'])): ?>
+                <ul class="cart-list">
+                    <?php 
+                    $total_sum = 0;
+                    $ids = implode(',', array_keys($_SESSION['cart']));
+                    $stmt_cart = $pdo->query("SELECT * FROM products WHERE id IN ($ids)");
+                    
+                    while($item = $stmt_cart->fetch()): 
+                        $qty = $_SESSION['cart'][$item['id']];
+                        $subtotal = $item['price'] * $qty;
+                        $total_sum += $subtotal;
+                    ?>
+                        <li class="cart-item">
+                            <div class="cart-item-info">
+                                <strong><?php echo htmlspecialchars($item['title']); ?></strong><br>
+                                <?php echo $qty; ?> шт. x <?php echo $item['price']; ?> грн
+                            </div>
+                            <a href="index.php?remove=<?php echo $item['id']; ?>" class="remove-link">видалити</a>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+                <div class="side-cart-footer">
+                    <p class="total-price">Разом: <?php echo $total_sum; ?> грн</p>
+                    <a href="checkout.php" class="buy-btn checkout-btn" style="width: 100%; margin: 20px 0 0 0;">Оформити замовлення</a>
+                </div>
+            <?php else: ?>
+                <p style="text-align: center; color: #666; padding-top: 50px;">Кошик порожній.</p>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <!-- --- ВІЗУАЛЬНИЙ БЛОК КОШИКА --- -->
-    <div class="cart-section">
-        <h3>Ваш кошик</h3>
-        <?php if (!empty($_SESSION['cart'])): ?>
-            <ul class="cart-list">
-                <?php 
-                $total_sum = 0;
-                $ids = implode(',', array_keys($_SESSION['cart']));
-                $stmt_cart = $pdo->query("SELECT * FROM products WHERE id IN ($ids)");
-                
-                while($item = $stmt_cart->fetch()): 
-                    $qty = $_SESSION['cart'][$item['id']];
-                    $subtotal = $item['price'] * $qty;
-                    $total_sum += $subtotal;
-                ?>
-                    <li class="cart-item">
-                        <div class="cart-item-info">
-                            <strong><?php echo htmlspecialchars($item['title']); ?></strong> 
-                            — <?php echo $qty; ?> шт. x <?php echo $item['price']; ?> грн
-                        </div>
-                        <a href="index.php?remove=<?php echo $item['id']; ?>" class="remove-link">видалити</a>
-                    </li>
-                <?php endwhile; ?>
-            </ul>
-            <p class="total-price">Разом: <?php echo $total_sum; ?> грн</p>
-            <a href="checkout.php" class="buy-btn checkout-btn">Оформити замовлення</a>
-        <?php else: ?>
-            <p style="text-align: center; color: #666;">Кошик порожній. Час додати щось крафтове!</p>
-        <?php endif; ?>
+    <!-- Твій банер -->
+    <div class="hero-banner">
+        <img src="uploads/own.png" alt="Craft Box Banner">
     </div>
 
     <h2 class="catalog-title">Каталог</h2>
@@ -101,5 +117,11 @@ if (isset($_GET['remove'])) {
         ?>
     </div>
 
+    <script>
+        function toggleCart() {
+            document.getElementById('side-cart').classList.toggle('active');
+            document.getElementById('cart-overlay').classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
