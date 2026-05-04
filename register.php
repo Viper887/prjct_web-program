@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php if ($error) echo "<p style='color: #a31d1d; margin-bottom: 10px;'>$error</p>"; ?>
         
         <form method="POST">
-            <input name="name" placeholder="Ім'я" required>
+            <input type="text" name="name" placeholder="Ім'я" required>
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Пароль" required>
             <select name="role">
