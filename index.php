@@ -59,11 +59,18 @@ if (isset($_GET['remove'])) {
     </div>
 
     <!-- ВИЇЗНЕ МЕНЮ КОШИКА -->
-    <div id="side-cart" class="side-cart">
+<div id="side-cart" class="side-cart">
         <div class="side-cart-header">
-            <h3>Ваш кошик</h3>
+            <div class="side-cart-title-block">
+                <h3>Ваш кошик</h3>
+                <?php 
+                $total_items = !empty($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
+                ?>
+                <p class="side-cart-count">Всього товарів: <span><?php echo $total_items; ?></span></p>
+            </div>
             <span class="close-cart" onclick="toggleCart()">&times;</span>
         </div>
+        
         <div class="side-cart-content">
             <?php if (!empty($_SESSION['cart'])): ?>
                 <ul class="cart-list">
@@ -78,17 +85,35 @@ if (isset($_GET['remove'])) {
                         $total_sum += $subtotal;
                     ?>
                         <li class="cart-item">
-                            <div class="cart-item-info">
-                                <strong><?php echo htmlspecialchars($item['title']); ?></strong><br>
-                                <?php echo $qty; ?> шт. x <?php echo $item['price']; ?> грн
+                            <div class="cart-item-image">
+                                <img src="<?php echo htmlspecialchars($item['image_path']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>">
                             </div>
-                            <a href="index.php?remove=<?php echo $item['id']; ?>" class="remove-link">Видалити</a>
+                            
+                            <div class="cart-item-details">
+                                <span class="cart-item-title"><?php echo htmlspecialchars($item['title']); ?></span>
+                                <span class="cart-item-desc">крафтовий товар / опис</span> <div class="cart-item-controls">
+                                    <div class="quantity-control">
+                                        <a href="change_qty.php?id=<?php echo $item['id']; ?>&action=decrease" class="qty-btn">-</a>
+                                        <span class="qty-num"><?php echo $qty; ?></span>
+                                        <a href="change_qty.php?id=<?php echo $item['id']; ?>&action=increase" class="qty-btn">+</a>
+                                    </div>
+                                    <span class="cart-item-price"><?php echo number_format($subtotal, 2, '.', ''); ?> грн</span>
+                                </div>
+                            </div>
+                            
+                            <a href="index.php?remove=<?php echo $item['id']; ?>" class="cart-item-remove" title="Видалити">
+                                <span>&times;</span>
+                            </a>
                         </li>
                     <?php endwhile; ?>
                 </ul>
+                
                 <div class="side-cart-footer">
-                    <p class="total-price">Разом: <?php echo $total_sum; ?> грн</p>
-                    <a href="checkout.php" class="buy-btn checkout-btn" style="width: 100%; margin: 20px 0 0 0;">Оформити замовлення</a>
+                    <div class="total-row">
+                        <span>Всього до сплати:</span>
+                        <span class="total-price"><?php echo number_format($total_sum, 2, '.', ''); ?> грн</span>
+                    </div>
+                    <a href="checkout.php" class="checkout-btn">Оформити замовлення</a>
                 </div>
             <?php else: ?>
                 <p style="text-align: center; color: #666; padding-top: 50px;">Кошик порожній.</p>
