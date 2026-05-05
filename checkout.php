@@ -1,7 +1,6 @@
 <?php
 require 'config.php';
 
-// Перевірка наявності товарів у кошику. Якщо порожньо — повертаємо на головну
 if (empty($_SESSION['cart'])) {
     header("Location: index.php");
     exit;
@@ -11,14 +10,13 @@ $success = false;
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Очищення введених даних
     $name = htmlspecialchars(trim($_POST['name']));
     $phone = htmlspecialchars(trim($_POST['phone']));
     $address = htmlspecialchars(trim($_POST['address']));
 
     if (!empty($name) && !empty($phone)) {
         try {
-            // 1. Отримуємо дані про товари для розрахунку фінальної ціни
+            // 1. Розрахунок цін та підготовка JSON
             $ids = array_keys($_SESSION['cart']);
             $placeholders = str_repeat('?,', count($ids) - 1) . '?';
             $stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
@@ -41,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ];
             }
 
-            // 2. Вставка замовлення у таблицю orders
+            // 2. Вставка замовлення
+            // ВАЖЛИВО: Тут 6 знаків запитання для 6 значень у execute()
             $sql = "INSERT INTO orders (user_id, customer_name, phone, address, total_price, items_json, status) 
                     VALUES (?, ?, ?, ?, ?, ?, 'new')";
             
@@ -50,15 +49,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $_SESSION['user_id'] ?? null; 
             $json_data = json_encode($items_for_json, JSON_UNESCAPED_UNICODE);
 
-            if ($stmt_insert->execute([$user_id, $name, $phone, $address, $total_price, $json_data])) {
-                // Очищуємо кошик після успішного замовлення
+            // Передаємо рівно 6 параметрів
+            $params = [
+                $user_id, 
+                $name, 
+                $phone, 
+                $address, 
+                $total_price, 
+                $json_data
+            ];
+
+            if ($stmt_insert->execute($params)) {
                 unset($_SESSION['cart']);
                 $success = true;
             } else {
-                $error = "Не вдалося зберегти замовлення в базі даних.";
+                $error = "Не вдалося зберегти замовлення.";
             }
         } catch (Exception $e) {
-            $error = "Помилка: " . $e->getMessage();
+            $error = "Помилка бази даних: " . $e->getMessage();
         }
     } else {
         $error = "Будь ласка, заповніть обов'язкові поля: Ім'я та Телефон.";
