@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Май 04 2026 г., 23:47
+-- Время создания: Май 05 2026 г., 13:35
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -31,9 +31,12 @@ USE `craft_shop`;
 
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
-  `buyer_id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
   `address` text NOT NULL,
+  `total_price` decimal(10,2) DEFAULT NULL,
+  `items_json` text DEFAULT NULL,
   `status` enum('new','processing','completed') DEFAULT 'new',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -42,8 +45,8 @@ CREATE TABLE `orders` (
 -- Дамп данных таблицы `orders`
 --
 
-INSERT INTO `orders` (`id`, `buyer_id`, `product_id`, `address`, `status`, `created_at`) VALUES
-(3, 10, 6, '21', 'new', '2026-05-02 20:50:03');
+INSERT INTO `orders` (`id`, `user_id`, `customer_name`, `phone`, `address`, `total_price`, `items_json`, `status`, `created_at`) VALUES
+(9, 10, 'EuroPenetrator', '+3800000000', 'Полтава', 150.00, '[{\"product_id\":6,\"title\":\"Мед різнотрав’я\",\"price\":\"150.00\",\"quantity\":1}]', 'new', '2026-05-05 11:15:44');
 
 -- --------------------------------------------------------
 
@@ -98,8 +101,7 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `buyer_id` (`buyer_id`),
-  ADD KEY `product_id` (`product_id`);
+  ADD KEY `buyer_id` (`user_id`);
 
 --
 -- Индексы таблицы `products`
@@ -123,7 +125,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблицы `products`
@@ -145,8 +147,7 @@ ALTER TABLE `users`
 -- Ограничения внешнего ключа таблицы `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Ограничения внешнего ключа таблицы `products`

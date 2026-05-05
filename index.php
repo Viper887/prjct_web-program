@@ -82,7 +82,7 @@ if (isset($_GET['remove'])) {
                                 <strong><?php echo htmlspecialchars($item['title']); ?></strong><br>
                                 <?php echo $qty; ?> шт. x <?php echo $item['price']; ?> грн
                             </div>
-                            <a href="index.php?remove=<?php echo $item['id']; ?>" class="remove-link">видалити</a>
+                            <a href="index.php?remove=<?php echo $item['id']; ?>" class="remove-link">Видалити</a>
                         </li>
                     <?php endwhile; ?>
                 </ul>
