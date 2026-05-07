@@ -420,6 +420,120 @@ body {
     width: 95%;
 }
 
+/* --- СТИЛІ ДЛЯ СТОРІНКИ ОФОРМЛЕННЯ (checkout.php) --- */
+
+.checkout-container { 
+    max-width: 1100px; 
+    background: #fff; 
+    margin: 30px auto; 
+    border-radius: 24px; 
+    border: 1px solid #ddd; 
+    padding: 40px; 
+}
+
+.checkout-grid { 
+    display: grid; 
+    grid-template-columns: 1.6fr 1fr; 
+    gap: 40px; 
+}
+
+.section-title { 
+    font-weight: 900; 
+    font-size: 18px; 
+    margin: 20px 0 10px; 
+    display: block; 
+    text-transform: uppercase; 
+    color: #1a1a1a; 
+}
+
+.form-row { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+}
+
+.form-group { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.form-group label { 
+    font-size: 13px; 
+    font-weight: bold; 
+    margin-bottom: 5px; 
+    color: #666; 
+}
+
+.selector-box { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 15px; 
+    flex-wrap: nowrap; 
+}
+
+.opt { 
+    flex: 1; 
+    padding: 14px 5px; 
+    border: 2px solid #eee; 
+    border-radius: 12px; 
+    text-align: center; 
+    cursor: pointer; 
+    font-weight: 800; 
+    transition: 0.3s; 
+    color: #555; 
+    white-space: nowrap; 
+    min-width: 165px; 
+}
+
+.opt.active { 
+    border-color: #a31d1d; 
+    background: #fdf2f2; 
+    color: #a31d1d; 
+}
+
+.opt input { display: none; }
+
+.hidden-block { 
+    display: none; 
+    padding: 20px; 
+    background: #f9f9f9; 
+    border-radius: 15px; 
+    margin-top: 10px; 
+    border: 1px solid #eee; 
+}
+
+.hidden-block.active { display: block; }
+
+.summary-card { 
+    background: #fdf2f2; 
+    padding: 30px; 
+    border-radius: 24px; 
+    border: 1px solid #a31d1d; 
+    margin-top: 15px; 
+}
+
+.total-amount { 
+    font-size: 36px; 
+    font-weight: 900; 
+    color: #a31d1d; 
+    margin-bottom: 20px; 
+}
+
+/* Стиль для повідомлення про успіх */
+.success-message {
+    text-align: center; 
+    padding: 60px;
+}
+
+.success-message h2 {
+    color: #a31d1d; 
+    font-size: 32px; 
+    font-weight: 900; 
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
 .checkout-form-grid {
     display: grid; 
     grid-template-columns: 1fr 1fr; 
@@ -520,6 +634,198 @@ input:focus, select:focus {
     text-decoration: none;
     font-weight: bold;
     font-size: 13px;
+}
+
+        /* --- Твої стилі з style.css --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #e3dcd2;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-logo {
+            width: 100%;
+            background-color: #a31d1d;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-logo h1 {
+            color: #fff;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-style: italic;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        /* --- НАЛАШТУВАННЯ СІТКИ (ГОРІЗОНТАЛЬНО) --- */
+        .orders-container {
+            display: flex;
+            flex-wrap: wrap; /* Дозволяє переносити на новий рядок */
+            gap: 20px;       /* Відступ між картками */
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+            justify-content: center; /* Центрування карток */
+        }
+
+        /* Картка замовлення у твоєму стилі */
+        .order-card { 
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: calc(50% - 10px); /* 2 картки в ряд на десктопі */
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-header { 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 2px solid #a31d1d; 
+            padding-bottom: 15px; 
+            margin-bottom: 15px; 
+        }
+
+        .order-header h3 { font-weight: 800; }
+        .order-status { color: #a31d1d; font-weight: bold; text-transform: uppercase; }
+
+        .info { font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
+
+        .items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .items-table th { text-align: left; color: #777; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+        .items-table td { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+
+        .my-total { 
+            text-align: right; 
+            margin-top: auto; /* Притискає суму до низу картки */
+            padding-top: 20px; 
+            font-size: 1.2em; 
+            font-weight: 900; 
+            color: #a31d1d; 
+        }
+
+        /* --- Стили для admin_orders.php --- */
+
+.admin-body {
+    background-color: #e3dcd2;
+    color: #1a1a1a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header-admin {
+    width: 100%;
+    background-color: #a31d1d;
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.header-admin h1 {
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.back-link {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.orders-grid {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 20px;       
+    max-width: 1200px;
+    width: 100%;
+    padding: 20px;
+    justify-content: center; 
+}
+
+.order-card { 
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    width: calc(50% - 10px); 
+    min-width: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-card-header { 
+    display: flex; 
+    justify-content: space-between; 
+    border-bottom: 2px solid #a31d1d; 
+    padding-bottom: 15px; 
+    margin-bottom: 15px; 
+}
+
+.order-card-header h3 { font-weight: 800; margin: 0; }
+.order-status-badge { color: #a31d1d; font-weight: bold; text-transform: uppercase; }
+
+.order-info { font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
+
+.order-items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.order-items-table th { text-align: left; color: #777; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+.order-items-table td { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+
+.order-total-footer { 
+    text-align: right; 
+    margin-top: auto; 
+    padding-top: 20px; 
+    font-size: 1.2em; 
+    font-weight: 900; 
+    color: #a31d1d; 
+}
+
+.btn-secondary {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    padding: 12px;
+    background: #f4f4f4;
+    color: #000;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    border: 1px solid #000;
+    transition: 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
+    color: #000;
 }
 
 /* --- 9. Адаптивність --- */

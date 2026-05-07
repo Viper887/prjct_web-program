@@ -7,9 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'seller') {
 
 $seller_id = $_SESSION['user_id'];
 
-// 1. Отримуємо всі замовлення з бази даних
-// Оскільки товари тепер у JSON, ми беремо всі замовлення, а потім відфільтруємо ті, 
-// де є товари поточного продавця, або просто виведемо деталі замовлень.
+// 1. Отримуємо всі замовлення
 $stmt = $pdo->prepare("
     SELECT o.*, u.name as buyer_name 
     FROM orders o
@@ -19,7 +17,6 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $all_orders = $stmt->fetchAll();
 
-// 2. Фільтруємо замовлення, щоб показувати продавцю лише його товари
 $seller_orders = [];
 
 foreach ($all_orders as $order) {
@@ -29,19 +26,19 @@ foreach ($all_orders as $order) {
 
     if (is_array($items)) {
         foreach ($items as $item) {
-            // Робимо швидкий запит до БД, щоб дізнатися, чи належить цей товар поточному продавцю
-            $stmt_prod = $pdo->prepare("SELECT seller_id FROM products WHERE id = ?");
-            $stmt_prod->execute([$item['product_id']]);
-            $product = $stmt_prod->fetch();
+            if (isset($item['product_id'])) {
+                $stmt_prod = $pdo->prepare("SELECT seller_id FROM products WHERE id = ?");
+                $stmt_prod->execute([$item['product_id']]);
+                $product = $stmt_prod->fetch();
 
-            if ($product && $product['seller_id'] == $seller_id) {
-                $seller_items[] = $item;
-                $seller_subtotal += $item['price'] * $item['quantity'];
+                if ($product && $product['seller_id'] == $seller_id) {
+                    $seller_items[] = $item;
+                    $seller_subtotal += $item['price'] * $item['quantity'];
+                }
             }
         }
     }
 
-    // Якщо у цьому замовленні є хоча б один товар цього продавця, додаємо його до списку відображення
     if (!empty($seller_items)) {
         $order['my_items'] = $seller_items;
         $order['my_total'] = $seller_subtotal;
@@ -54,90 +51,40 @@ foreach ($all_orders as $order) {
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель замовлень продавця</title>
+    <title>Панель продавця - Замовлення</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .orders-container {
-            max-width: 1000px;
-            width: 95%;
-            margin: 40px auto;
-        }
-        .order-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(163, 29, 29, 0.2);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(163, 29, 29, 0.1);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .order-status {
-            font-weight: bold;
-            color: #a31d1d;
-            text-transform: uppercase;
-        }
-        .buyer-info {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 15px;
-        }
-        .order-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .order-items-table th, .order-items-table td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
 </head>
-<body>
+<body class="admin-body">
 
-    <div class="header-logo">
-        <h1>Панель продавця</h1>
-        <div style="margin-top: 10px;">
-            <a href="index.php" style="color: #fff; text-decoration: none; font-weight: bold;">← На головну</a>
-        </div>
+    <div class="header-admin">
+        <h1>Керування замовленнями</h1>
+        <a href="index.php" class="back-link">← На головну</a>
     </div>
 
-    <div class="orders-container">
-        <h2 style="margin-bottom: 25px; text-align: center;">Отримані замовлення</h2>
-
+    <div class="orders-grid">
         <?php if (empty($seller_orders)): ?>
-            <p style="text-align: center; color: #666; font-size: 18px;">У вас ще немає замовлень.</p>
+            <p style="text-align: center; font-size: 1.2em; color: #777;">Замовлень поки немає.</p>
         <?php else: ?>
             <?php foreach ($seller_orders as $order): ?>
                 <div class="order-card">
-                    <div class="order-header">
+                    <div class="order-card-header">
                         <h3>Замовлення №<?php echo $order['id']; ?></h3>
-                        <span class="order-status"><?php echo htmlspecialchars($order['status']); ?></span>
-                    </div>
-                    
-                    <div class="buyer-info">
-                        <strong>Покупець:</strong> <?php echo htmlspecialchars($order['customer_name']); ?> (<?php echo htmlspecialchars($order['buyer_name'] ?? 'Гість'); ?>)<br>
-                        <strong>Телефон:</strong> <?php echo htmlspecialchars($order['phone']); ?><br>
-                        <strong>Адреса доставки:</strong> <?php echo htmlspecialchars($order['address']); ?><br>
-                        <strong>Дата:</strong> <?php echo $order['created_at']; ?>
+                        <span class="order-status-badge"><?php echo htmlspecialchars($order['status']); ?></span>
                     </div>
 
-                    <h4>Товари від вашого магазину у цьому замовленні:</h4>
+                    <div class="order-info">
+                        <strong>Клієнт:</strong> <?php echo htmlspecialchars($order['customer_name']); ?><br>
+                        <strong>Телефон:</strong> <?php echo htmlspecialchars($order['phone']); ?><br>
+                        <strong>Адреса:</strong> <?php echo htmlspecialchars($order['address']); ?>
+                    </div>
+
                     <table class="order-items-table">
                         <thead>
                             <tr>
-                                <th>Назва товару</th>
+                                <th>Товар</th>
                                 <th>Ціна</th>
-                                <th>Кількість</th>
-                                <th>Сума</th>
+                                <th>К-сть</th>
+                                <th>Разом</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -145,15 +92,15 @@ foreach ($all_orders as $order) {
                                 <tr>
                                     <td><?php echo htmlspecialchars($item['title']); ?></td>
                                     <td><?php echo $item['price']; ?> грн</td>
-                                    <td><?php echo $item['quantity']; ?> шт.</td>
+                                    <td><?php echo $item['quantity']; ?></td>
                                     <td><?php echo $item['price'] * $item['quantity']; ?> грн</td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
 
-                    <div style="text-align: right; margin-top: 15px; font-size: 16px; font-weight: bold;">
-                        Сума до сплати вам: <span style="color: #a31d1d; font-size: 18px;"><?php echo $order['my_total']; ?> грн</span>
+                    <div class="order-total-footer">
+                        Ваша сума: <?php echo $order['my_total']; ?> грн
                     </div>
                 </div>
             <?php endforeach; ?>

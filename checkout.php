@@ -1,6 +1,7 @@
 <?php
 require 'config.php';
 
+// Перевірка кошика
 if (empty($_SESSION['cart'])) {
     header("Location: index.php");
     exit;
@@ -12,11 +13,27 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = htmlspecialchars(trim($_POST['name']));
     $phone = htmlspecialchars(trim($_POST['phone']));
-    $address = htmlspecialchars(trim($_POST['address']));
+    $delivery_type = htmlspecialchars(trim($_POST['delivery_type']));
+    $payment_method = htmlspecialchars(trim($_POST['payment_method']));
+
+    // 1. Формування адреси
+    if ($delivery_type === 'np') {
+        $city = htmlspecialchars(trim($_POST['np_city']));
+        $office = htmlspecialchars(trim($_POST['np_office']));
+        $full_address = "Нова Пошта: м. $city, №$office";
+    } else {
+        $city = htmlspecialchars(trim($_POST['home_city']));
+        $street = htmlspecialchars(trim($_POST['home_street']));
+        $house = htmlspecialchars(trim($_POST['home_house']));
+        $flat = htmlspecialchars(trim($_POST['home_flat']));
+        $full_address = "Кур'єр: м. $city, вул. $street, буд. $house, кв. $flat";
+    }
+
+    // 2. Метод оплати
+    $payment_info = ($payment_method === 'card') ? "Карта" : "При отриманні";
 
     if (!empty($name) && !empty($phone)) {
         try {
-            // 1. Розрахунок цін та підготовка JSON
             $ids = array_keys($_SESSION['cart']);
             $placeholders = str_repeat('?,', count($ids) - 1) . '?';
             $stmt = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
@@ -25,51 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $total_price = 0;
             $items_for_json = [];
-
             foreach ($products as $product) {
                 $qty = $_SESSION['cart'][$product['id']];
-                $subtotal = $product['price'] * $qty;
-                $total_price += $subtotal;
-                
+                $total_price += $product['price'] * $qty;
                 $items_for_json[] = [
-                    'product_id' => $product['id'],
-                    'title' => $product['title'],
-                    'price' => $product['price'],
+                    'product_id' => $product['id'], 
+                    'title' => $product['title'], 
+                    'price' => $product['price'], 
                     'quantity' => $qty
                 ];
             }
 
-            // 2. Вставка замовлення
-            // ВАЖЛИВО: Тут 6 знаків запитання для 6 значень у execute()
             $sql = "INSERT INTO orders (user_id, customer_name, phone, address, total_price, items_json, status) 
                     VALUES (?, ?, ?, ?, ?, ?, 'new')";
             
             $stmt_insert = $pdo->prepare($sql);
-            
-            $user_id = $_SESSION['user_id'] ?? null; 
             $json_data = json_encode($items_for_json, JSON_UNESCAPED_UNICODE);
+            $final_details = $full_address . " | Оплата: " . $payment_info;
 
-            // Передаємо рівно 6 параметрів
-            $params = [
-                $user_id, 
-                $name, 
-                $phone, 
-                $address, 
-                $total_price, 
-                $json_data
-            ];
-
-            if ($stmt_insert->execute($params)) {
+            if ($stmt_insert->execute([$_SESSION['user_id'] ?? null, $name, $phone, $final_details, $total_price, $json_data])) {
                 unset($_SESSION['cart']);
                 $success = true;
-            } else {
-                $error = "Не вдалося зберегти замовлення.";
             }
-        } catch (Exception $e) {
-            $error = "Помилка бази даних: " . $e->getMessage();
-        }
-    } else {
-        $error = "Будь ласка, заповніть обов'язкові поля: Ім'я та Телефон.";
+        } catch (Exception $e) { $error = "Помилка: " . $e->getMessage(); }
     }
 }
 ?>
@@ -79,89 +74,169 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оформлення замовлення — Craft Box</title>
+    <title>Оформлення замовлення</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="header-logo">
+<div class="header-logo">
+    <div class="header-flex">
         <h1>Craft Box</h1>
+        <a href="index.php" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">← НА ГОЛОВНУ</a>
     </div>
+</div>
 
-    <div class="cart-section">
-        
-        <?php if ($success): ?>
-            <div style="text-align: center; padding: 40px;">
-                <h2 style="color: #a31d1d; font-style: italic; font-size: 36px; text-transform: uppercase; margin-bottom: 20px;">Замовлення прийнято!</h2>
-                <p style="font-size: 18px; margin-bottom: 30px;">Дякуємо! Ми зателефонуємо вам найближчим часом для підтвердження доставки.</p>
-                <a href="index.php" class="buy-btn">Повернутися до магазину</a>
-            </div>
-        <?php else: ?>
-            <h3>Оформлення замовлення</h3>
-            
-            <?php if ($error): ?>
-                <div style="color: #a31d1d; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #a31d1d; font-weight: bold;">
-                    <?php echo $error; ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST">
-                <div class="checkout-form-grid">
-                    <div class="form-group">
-                        <label>Ваше ім'я *</label>
-                        <input type="text" name="name" value="<?php echo $_SESSION['name'] ?? ''; ?>" placeholder="Введіть ваше ім'я" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Телефон *</label>
-                        <input type="text" name="phone" placeholder="+380..." required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Адреса доставки</label>
-                    <textarea name="address" rows="3" placeholder="Місто, номер відділення Нової Пошти або домашня адреса"></textarea>
-                </div>
-
-                <div class="order-summary">
-                    <h4>Ваш вибір:</h4>
-                    <table class="order-table">
-                        <?php
-                        $ids = array_keys($_SESSION['cart']);
-                        $placeholders = str_repeat('?,', count($ids) - 1) . '?';
-                        $stmt_view = $pdo->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
-                        $stmt_view->execute($ids);
-                        
-                        $final_total = 0;
-                        while($item = $stmt_view->fetch()):
-                            $qty = $_SESSION['cart'][$item['id']];
-                            $subtotal = $item['price'] * $qty;
-                            $final_total += $subtotal;
-                        ?>
-                            <tr>
-                                <td style="font-weight: bold;"><?php echo htmlspecialchars($item['title']); ?></td>
-                                <td style="text-align: center; color: #666;"><?php echo $qty; ?> шт.</td>
-                                <td style="text-align: right; font-weight: 800; color: #a31d1d;"><?php echo $subtotal; ?> грн</td>
-                            </tr>
-                        <?php endwhile; ?>
-                        <tr>
-                            <td colspan="2" style="padding-top: 20px; font-size: 20px; font-weight: 900;">ЗАГАЛЬНА СУМА:</td>
-                            <td style="padding-top: 20px; text-align: right; font-size: 22px; font-weight: 900; color: #a31d1d;">
-                                <?php echo $final_total; ?> грн
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <button type="submit" class="buy-btn" style="width: 100%;">
-                    ПІДТВЕРДИТИ ЗАМОВЛЕННЯ
-                </button>
+<div class="checkout-container">
+    <?php if ($success): ?>
+        <div class="success-message">
+            <h2>ЗАМОВЛЕННЯ ПРИЙНЯТО!</h2>
+            <p>Дякуємо! Ми зателефонуємо вам найближчим часом.</p>
+            <br><a href="index.php" class="buy-btn">НА ГОЛОВНУ</a>
+        </div>
+    <?php else: ?>
+        <form method="POST">
+            <div class="checkout-grid">
                 
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="index.php" style="color: #666; text-decoration: none; font-size: 14px;">← Повернутися на головну</a>
-                </div>
-            </form>
-        <?php endif; ?>
-    </div>
+                <div class="checkout-left">
+                    <span class="section-title">1. Контактні дані</span>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Прізвище, Ім'я *</label>
+                        <input type="text" name="name" placeholder="Введіть дані" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Телефон *</label>
+                            <input type="text" name="phone" id="phone_input" value="+380" maxlength="13" required>
+                        </div>
+                        <div class="form-group"><label>Email</label><input type="email" name="email" placeholder="email@example.com"></div>
+                    </div>
 
+                    <span class="section-title">2. Спосіб доставки</span>
+                    <div class="selector-box">
+                        <label class="opt active" onclick="toggleTab('delivery', 'np', this)">
+                            <input type="radio" name="delivery_type" value="np" checked> Нова Пошта
+                        </label>
+                        <label class="opt" onclick="toggleTab('delivery', 'home', this)">
+                            <input type="radio" name="delivery_type" value="home"> Кур'єр (Адреса)
+                        </label>
+                    </div>
+
+                    <div id="np_fields" class="hidden-block active">
+                        <div class="form-row">
+                            <div class="form-group"><label>Місто</label><input type="text" name="np_city" placeholder="Київ"></div>
+                            <div class="form-group"><label>Відділення №</label><input type="text" name="np_office" placeholder="№"></div>
+                        </div>
+                    </div>
+
+                    <div id="home_fields" class="hidden-block">
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;"><label>Місто</label><input type="text" name="home_city" placeholder="Місто"></div>
+                            <div class="form-group" style="flex:2;"><label>Вулиця</label><input type="text" name="home_street" placeholder="Вулиця"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Будинок</label><input type="text" name="home_house" placeholder="Буд."></div>
+                            <div class="form-group"><label>Квартира</label><input type="text" name="home_flat" placeholder="Кв."></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-right">
+                    <span class="section-title">3. Спосіб оплати</span>
+                    <div class="selector-box">
+                        <label class="opt active" onclick="toggleTab('payment', 'cod', this)">
+                            <input type="radio" name="payment_method" value="При отриманні" checked> При отриманні
+                        </label>
+                        <label class="opt" onclick="toggleTab('payment', 'card', this)">
+                            <input type="radio" name="payment_method" value="card"> Банківська карта
+                        </label>
+                    </div>
+
+                    <div id="card_fields" class="hidden-block">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Номер карти</label>
+                            <input type="text" id="card_num" name="card_num" placeholder="0000 0000 0000 0000" maxlength="19">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ММ/РР</label>
+                                <input type="text" id="card_date" name="card_date" placeholder="12/25" maxlength="5">
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="text" id="card_cvv" name="card_cvv" placeholder="123" maxlength="3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <h4 style="font-weight: 900; font-size: 14px; margin-bottom: 10px;">РАЗОМ ДО СПЛАТИ:</h4>
+                        <?php
+                        $total = 0;
+                        if (!empty($_SESSION['cart'])) {
+                            foreach ($_SESSION['cart'] as $id => $qty) {
+                                $st = $pdo->prepare("SELECT price FROM products WHERE id = ?");
+                                $st->execute([$id]);
+                                $row = $st->fetch();
+                                if ($row) $total += $row['price'] * $qty;
+                            }
+                        }
+                        ?>
+                        <div class="total-amount"><?php echo $total; ?> грн</div>
+                        <button type="submit" class="checkout-btn" style="width: 100%;">ПІДТВЕРДИТИ</button>
+                        
+                        <a href="index.php" class="btn-secondary">ПОВЕРНУТИСЯ ДО МАГАЗИНУ</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    <?php endif; ?>
+</div>
+
+<script>
+function toggleTab(category, type, element) {
+    element.closest('.selector-box').querySelectorAll('.opt').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+
+    if (category === 'delivery') {
+        document.getElementById('np_fields').classList.remove('active');
+        document.getElementById('home_fields').classList.remove('active');
+        document.getElementById(type + '_fields').classList.add('active');
+    }
+    if (category === 'payment') {
+        const cardFields = document.getElementById('card_fields');
+        if (type === 'card') cardFields.classList.add('active');
+        else cardFields.classList.remove('active');
+    }
+}
+
+// Форматування телефону
+const phoneInput = document.getElementById('phone_input');
+phoneInput.addEventListener('input', function (e) {
+    if (!e.target.value.startsWith('+380')) e.target.value = '+380';
+    e.target.value = '+' + e.target.value.replace(/[^\d]/g, '');
+});
+
+// Номер карти
+const cardNumInput = document.getElementById('card_num');
+cardNumInput.addEventListener('input', function (e) {
+    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
+    e.target.value = formattedValue;
+});
+
+// Дата
+const cardDateInput = document.getElementById('card_date');
+cardDateInput.addEventListener('input', function (e) {
+    let value = e.target.value.replace(/[^0-9]/gi, '');
+    if (value.length > 2) e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    else e.target.value = value;
+});
+
+// CVV
+const cvvInput = document.getElementById('card_cvv');
+cvvInput.addEventListener('input', function (e) {
+    e.target.value = e.target.value.replace(/[^0-9]/gi, '');
+});
+</script>
 </body>
 </html>
