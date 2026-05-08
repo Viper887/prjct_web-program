@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // 1. Формування адреси
     if ($delivery_type === 'np') {
-        $city = htmlspecialchars(trim($_POST['np_city']));
-        $office = htmlspecialchars(trim($_POST['np_office']));
-        $full_address = "Нова Пошта: м. $city, №$office";
+        $city = htmlspecialchars(trim($_POST['np_city_name'])); // Назва з прихованого поля
+        $office = htmlspecialchars(trim($_POST['np_office']));    // Вибране відділення
+        $full_address = "Нова Пошта: м. $city, $office";
     } else {
         $city = htmlspecialchars(trim($_POST['home_city']));
         $street = htmlspecialchars(trim($_POST['home_street']));
@@ -76,6 +76,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Оформлення замовлення</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Стилі для випадаючого списку міст */
+        .search-results {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            width: 100%;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .result-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .result-item:hover { background: #f9f9f9; color: #ff6b6b; }
+        .form-group { position: relative; }
+        select#np_office { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: white; }
+    </style>
 </head>
 <body>
 
@@ -123,8 +146,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div id="np_fields" class="hidden-block active">
                         <div class="form-row">
-                            <div class="form-group"><label>Місто</label><input type="text" name="np_city" placeholder="Київ"></div>
-                            <div class="form-group"><label>Відділення №</label><input type="text" name="np_office" placeholder="№"></div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Місто</label>
+                                <input type="text" id="np_city_search" placeholder="Пошук міста..." autocomplete="off">
+                                <input type="hidden" name="np_city_ref" id="np_city_ref">
+                                <input type="hidden" name="np_city_name" id="np_city_name">
+                                <div id="city_results" class="search-results"></div>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Відділення / Поштомат</label>
+                                <select name="np_office" id="np_office" disabled required>
+                                    <option value="">Оберіть місто</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -183,7 +217,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         ?>
                         <div class="total-amount"><?php echo $total; ?> грн</div>
                         <button type="submit" class="checkout-btn" style="width: 100%;">ПІДТВЕРДИТИ</button>
-                        
                         <a href="index.php" class="btn-secondary">ПОВЕРНУТИСЯ ДО МАГАЗИНУ</a>
                     </div>
                 </div>
@@ -193,6 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <script>
+// --- Логіка перемикання табів ---
 function toggleTab(category, type, element) {
     element.closest('.selector-box').querySelectorAll('.opt').forEach(opt => opt.classList.remove('active'));
     element.classList.add('active');
@@ -209,6 +243,73 @@ function toggleTab(category, type, element) {
     }
 }
 
+// --- Нова Пошта API Пошук ---
+document.addEventListener('DOMContentLoaded', function() {
+    const citySearch = document.getElementById('np_city_search');
+    const cityResults = document.getElementById('city_results');
+    const officeSelect = document.getElementById('np_office');
+
+    // Пошук міста
+    citySearch.addEventListener('input', function() {
+        let val = this.value.trim();
+        if (val.length < 2) {
+            cityResults.innerHTML = '';
+            return;
+        }
+
+        fetch(`np_api.php?action=getCities&q=${encodeURIComponent(val)}`)
+            .then(r => r.json())
+            .then(res => {
+                let html = '';
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(city => {
+                        html += `<div class="result-item" data-ref="${city.Ref}" data-name="${city.Description}">${city.Description} (${city.AreaDescription})</div>`;
+                    });
+                }
+                cityResults.innerHTML = html;
+            });
+    });
+
+    // Вибір міста
+    cityResults.addEventListener('click', function(e) {
+        if (e.target.classList.contains('result-item')) {
+            const ref = e.target.dataset.ref;
+            const name = e.target.dataset.name;
+
+            citySearch.value = name;
+            document.getElementById('np_city_ref').value = ref;
+            document.getElementById('np_city_name').value = name;
+            cityResults.innerHTML = '';
+
+            loadWarehouses(ref);
+        }
+    });
+
+    // Завантаження відділень
+    function loadWarehouses(cityRef) {
+        officeSelect.disabled = true;
+        officeSelect.innerHTML = '<option>Завантаження...</option>';
+
+        fetch(`np_api.php?action=getWarehouses&cityRef=${cityRef}`)
+            .then(r => r.json())
+            .then(res => {
+                let html = '<option value="">Оберіть відділення...</option>';
+                if (res.data) {
+                    res.data.forEach(wh => {
+                        html += `<option value="${wh.Description}">${wh.Description}</option>`;
+                    });
+                }
+                officeSelect.innerHTML = html;
+                officeSelect.disabled = false;
+            });
+    }
+
+    // Закриття результатів при кліку поза полем
+    document.addEventListener('click', (e) => {
+        if (!citySearch.contains(e.target)) cityResults.innerHTML = '';
+    });
+});
+
 // Форматування телефону
 const phoneInput = document.getElementById('phone_input');
 phoneInput.addEventListener('input', function (e) {
@@ -218,25 +319,23 @@ phoneInput.addEventListener('input', function (e) {
 
 // Номер карти
 const cardNumInput = document.getElementById('card_num');
-cardNumInput.addEventListener('input', function (e) {
-    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
-    e.target.value = formattedValue;
-});
+if(cardNumInput) {
+    cardNumInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
+        e.target.value = formattedValue;
+    });
+}
 
-// Дата
+// Дата карти
 const cardDateInput = document.getElementById('card_date');
-cardDateInput.addEventListener('input', function (e) {
-    let value = e.target.value.replace(/[^0-9]/gi, '');
-    if (value.length > 2) e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
-    else e.target.value = value;
-});
-
-// CVV
-const cvvInput = document.getElementById('card_cvv');
-cvvInput.addEventListener('input', function (e) {
-    e.target.value = e.target.value.replace(/[^0-9]/gi, '');
-});
+if(cardDateInput) {
+    cardDateInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/[^0-9]/gi, '');
+        if (value.length > 2) e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        else e.target.value = value;
+    });
+}
 </script>
 </body>
 </html>
