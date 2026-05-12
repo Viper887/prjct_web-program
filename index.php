@@ -5,13 +5,11 @@ require 'config.php';
 if (isset($_GET['ajax']) || isset($_GET['add_to_cart']) || isset($_GET['remove']) || isset($_GET['action'])) {
     if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 
-    // Додавання в кошик
     if (isset($_GET['add_to_cart'])) {
         $id = (int)$_GET['add_to_cart'];
         $_SESSION['cart'][$id] = ($_SESSION['cart'][$id] ?? 0) + 1;
     }
 
-    // Зміна кількості (+/-)
     if (isset($_GET['action']) && isset($_GET['id'])) {
         $id = (int)$_GET['id'];
         if ($_GET['action'] == 'increase') {
@@ -22,12 +20,10 @@ if (isset($_GET['ajax']) || isset($_GET['add_to_cart']) || isset($_GET['remove']
         }
     }
 
-    // Видалення
     if (isset($_GET['remove'])) {
         unset($_SESSION['cart'][(int)$_GET['remove']]);
     }
 
-    // Якщо це AJAX запит, повертаємо лише вміст кошика
     if (isset($_GET['ajax'])) {
         ob_start();
         include_cart_content($pdo);
@@ -45,7 +41,6 @@ if (isset($_GET['ajax']) || isset($_GET['add_to_cart']) || isset($_GET['remove']
     }
 }
 
-// Функція для рендеру вмісту кошика (щоб не дублювати код)
 function include_cart_content($pdo) {
     if (!empty($_SESSION['cart'])): ?>
         <ul class="cart-list">
@@ -100,14 +95,81 @@ function include_cart_content($pdo) {
     <title>Крафт Бокс — Крафтові товари Полтави</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* ВАШІ СТИЛІ БЕЗ ЗМІН */
         .seller-link { display: block; font-size: 13px; color: #666; text-decoration: none; margin-bottom: 10px; transition: 0.3s; }
         .seller-link:hover { color: #a11e1e; text-decoration: underline; }
         .seller-link b { color: #333; }
-        .my-profile-btn { font-weight: bold; color: #a11e1e; text-decoration: none; }
-
+        
         .side-cart-content { transition: opacity 0.2s; }
         .loading { opacity: 0.5; pointer-events: none; }
+
+        /* ВИРІВНЮВАННЯ ХЕДЕРА */
+        .header-logo { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 20px;
+            position: relative;
+        }
+
+        /* Порожній блок зліва для ідеального центрування заголовка */
+        .header-logo::before {
+            content: "";
+            flex: 1;
+        }
+
+        .header-logo h1 { 
+            flex: 2;
+            text-align: center;
+            margin: 0;
+        }
+
+        .header-actions { 
+            flex: 1;
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            gap: 20px; 
+        }
+        
+        .user-dropdown-container { position: relative; }
+.user-icon-img { 
+            width: 30px; 
+            height: 30px; 
+            cursor: pointer; 
+            display: block; 
+            filter: brightness(0) invert(1);
+            /* Убираем возможные лишние отступы */
+            margin: 0;
+        }
+        
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: #fff;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 1000;
+            border-radius: 8px;
+            padding: 10px 0;
+            margin-top: 15px;
+            border: 1px solid #eee;
+        }
+        .user-dropdown-content.active { display: block; }
+        
+.user-dropdown-content a, .user-dropdown-content p {
+            color: #333;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            margin: 0;
+            font-size: 14px;
+            /* Змінено з left на center */
+            text-align: center; 
+        }
+        .user-dropdown-content a:hover { background-color: #f9f9f9; color: #a11e1e; }
+        .user-dropdown-content .welcome-text { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -116,36 +178,40 @@ function include_cart_content($pdo) {
 
     <div class="header-logo">
         <h1>Craft Box</h1>
-        <div class="cart-icon-wrapper" onclick="toggleCart()">
-            <img src="uploads/cart.png" alt="Кошик" class="cart-icon-svg">
-            <span id="cart-badge-container">
-                <?php if (!empty($_SESSION['cart'])): ?>
-                    <span class="cart-badge"><?php echo array_sum($_SESSION['cart']); ?></span>
-                <?php endif; ?>
-            </span>
+        <div class="header-actions">
+            <div class="cart-icon-wrapper" onclick="toggleCart()">
+                <img src="uploads/cart.png" alt="Кошик" class="cart-icon-svg">
+                <span id="cart-badge-container">
+                    <?php if (!empty($_SESSION['cart'])): ?>
+                        <span class="cart-badge"><?php echo array_sum($_SESSION['cart']); ?></span>
+                    <?php endif; ?>
+                </span>
+            </div>
+
+            <div class="user-dropdown-container">
+                <img src="uploads/user-icon.png" alt="Профіль" class="user-icon-img" onclick="toggleUserMenu(event)">
+                <div id="userDropdown" class="user-dropdown-content">
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <p class="welcome-text">Вітаємо, <?= htmlspecialchars($_SESSION['name']); ?>!</p>
+                        <?php 
+                        $profile_page = ($_SESSION['role'] == 'seller') ? 'seller_profile.php' : 'customer_profile.php';
+                        ?>
+                        <a href="<?= $profile_page; ?>?id=<?= $_SESSION['user_id']; ?>">Мій кабінет</a>
+                        
+                        <?php if ($_SESSION['role'] == 'seller'): ?>
+                            <a href="admin_orders.php">Переглянути замовлення</a>
+                            <a href="add_product.php">Додати товар</a>
+                        <?php endif; ?>
+                        
+                        <a href="logout.php" style="color: #a11e1e; border-top: 1px solid #eee;">Вийти</a>
+                    <?php else: ?>
+                        <a href="login.php">Увійти</a>
+                        <a href="register.php">Реєстрація</a>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
-
-<div class="user-menu">
-    <?php if (isset($_SESSION['user_id'])): ?>
-        <p>Вітаємо, <?php echo htmlspecialchars($_SESSION['name']); ?>! | 
-           <?php 
-           // Визначаємо файл профілю залежно від ролі
-           $profile_page = ($_SESSION['role'] == 'seller') ? 'seller_profile.php' : 'customer_profile.php';
-           ?>
-           <a href="<?php echo $profile_page; ?>?id=<?php echo $_SESSION['user_id']; ?>" class="my-profile-btn">Мій кабінет</a> | 
-           <a href="logout.php">Вийти</a>
-        </p>
-        
-        <?php if ($_SESSION['role'] == 'seller'): ?>
-            <a href="add_product.php">Додати товар</a> | 
-            <a href="admin_orders.php"><b>Переглянути замовлення</b></a>
-        <?php endif; ?>
-
-    <?php else: ?>
-        <a href="login.php">Увійти</a> | <a href="register.php">Реєстрація</a>
-    <?php endif; ?>
-</div>
 
     <div id="side-cart" class="side-cart">
         <div class="side-cart-header">
@@ -189,7 +255,20 @@ function include_cart_content($pdo) {
             document.getElementById('cart-overlay').classList.toggle('active');
         }
 
-        // Обробка всіх кліків кошика (додати, + , - , видалити) через AJAX
+        function toggleUserMenu(e) {
+            e.stopPropagation();
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-icon-img')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown && dropdown.classList.contains('active')) {
+                    dropdown.classList.remove('active');
+                }
+            }
+        }
+
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.ajax-action, .qty-btn, .cart-item-remove, .buy-btn');
             if (!btn) return;
@@ -207,7 +286,6 @@ function include_cart_content($pdo) {
                     container.innerHTML = data.html;
                     container.classList.remove('loading');
                     
-                    // Оновлення цифр на іконці та в заголовку
                     document.getElementById('side-cart-total-qty').innerText = data.total_count;
                     const badgeContainer = document.getElementById('cart-badge-container');
                     if (data.total_count > 0) {
@@ -216,7 +294,6 @@ function include_cart_content($pdo) {
                         badgeContainer.innerHTML = '';
                     }
 
-                    // Відкриваємо кошик, якщо додали товар з каталогу
                     if (btn.classList.contains('buy-btn') && !document.getElementById('side-cart').classList.contains('active')) {
                         toggleCart();
                     }
