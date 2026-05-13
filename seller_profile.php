@@ -9,7 +9,7 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'seller'");
 $stmt->execute([$seller_id]);
 $seller = $stmt->fetch();
 
-if (!$seller) die("Покупця не існує");
+if (!$seller) die("Продавця не існує"); // Виправив "Покупця" на "Продавця"
 
 // Перевіряємо, чи це власник сторінки
 $is_owner = (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $seller_id);
@@ -64,14 +64,13 @@ $my_products = $stmt_items->fetchAll();
             height: 100%; 
         }
 
-        /* Налаштування для повного відображення фото */
         .product-item-card img { 
             width: 100%;
             height: 180px;
-            object-fit: contain; /* Фото не обрізається */
+            object-fit: contain;
             margin-bottom: 15px;
             border-radius: 10px;
-            background-color: #f9f9f9; /* Легкий фон для порожніх зон навколо фото */
+            background-color: #f9f9f9;
         }
 
         .product-item-card h4 {
@@ -142,27 +141,25 @@ $my_products = $stmt_items->fetchAll();
         </div>
 
         <div class="content-area">
-            
-            <?php if ($is_owner): ?>
-                <h3 style="margin-top: 0;">Ваші замовлення:</h3>
-                <div class="order-list">
-                    </div>
-                <hr style="margin: 40px 0; border: 0.5px solid #ccc;">
-            <?php endif; ?>
+            <!-- Блок "Ваші замовлення" видалено -->
 
             <h3>Товари продавця:</h3>
             <div class="product-grid">
-                <?php foreach ($my_products as $item): ?>
-                    <div class="product-item-card">
-                        <img src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['title']) ?>">
-                        <h4><?= htmlspecialchars($item['title']) ?></h4>
-                        <p class="price-text"><?= number_format($item['price'], 2, '.', '') ?> грн</p>
-                        
-                        <?php if (!$is_owner): ?>
-                            <a href="index.php?add_to_cart=<?= $item['id'] ?>" class="buy-link">В кошик</a>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
+                <?php if (empty($my_products)): ?>
+                    <p>Товарів поки немає.</p>
+                <?php else: ?>
+                    <?php foreach ($my_products as $item): ?>
+                        <div class="product-item-card">
+                            <img src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['title']) ?>">
+                            <h4><?= htmlspecialchars($item['title']) ?></h4>
+                            <p class="price-text"><?= number_format($item['price'], 2, '.', '') ?> грн</p>
+                            
+                            <?php if (!$is_owner): ?>
+                                <a href="index.php?add_to_cart=<?= $item['id'] ?>" class="buy-link">В кошик</a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>
