@@ -6,22 +6,30 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'seller') {
 }
 
 $success_msg = "";
+$error_msg = "";
 
-if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
-    $imgData = $_POST['cropped_image'];
-    $imgData = str_replace('data:image/png;base64,', '', $imgData);
-    $imgData = str_replace(' ', '+', $imgData);
-    $data = base64_decode($imgData);
+if($_SERVER['REQUEST_METHOD'] == 'POST'){
+    // Серверна перевірка на заповненість усіх полів
+    if(empty($_POST['title']) || empty($_POST['price']) || empty($_POST['cropped_image'])) {
+        $error_msg = "Будь ласка, заповніть усі поля та додайте фото!";
+    } else {
+        $imgData = $_POST['cropped_image'];
+        $imgData = str_replace('data:image/png;base64,', '', $imgData);
+        $imgData = str_replace(' ', '+', $imgData);
+        $data = base64_decode($imgData);
 
-    $fileName = time() . "_product.png";
-    $path = "uploads/" . $fileName;
+        $fileName = time() . "_product.png";
+        $path = "uploads/" . $fileName;
 
-    if (!is_dir('uploads')) mkdir('uploads', 0777, true);
+        if (!is_dir('uploads')) mkdir('uploads', 0777, true);
 
-    if(file_put_contents($path, $data)) {
-        $stmt = $pdo->prepare("INSERT INTO products (seller_id, title, price, image_path) VALUES (?,?,?,?)");
-        if($stmt->execute([$_SESSION['user_id'], $_POST['title'], $_POST['price'], $path])) {
-            $success_msg = "Товар успішно додано!";
+        if(file_put_contents($path, $data)) {
+            $stmt = $pdo->prepare("INSERT INTO products (seller_id, title, price, image_path) VALUES (?,?,?,?)");
+            if($stmt->execute([$_SESSION['user_id'], $_POST['title'], $_POST['price'], $path])) {
+                $success_msg = "Товар успішно додано!";
+            }
+        } else {
+            $error_msg = "Помилка при збереженні зображення.";
         }
     }
 } 
@@ -39,45 +47,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
         .add-product-body { background-color: #e6e2dd; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
         .header-logo { width: 100%; background-color: #a11e1e; padding: 15px 0; text-align: center; color: white; margin-bottom: 40px; }
         .back-link { color: white; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        
         .add-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
-        
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
         .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
-        
-        /* Стилі прев'ю переміщені вниз */
         #preview-container { 
-            width: 100%; 
-            height: 250px; 
-            border: 2px dashed #ddd; 
-            border-radius: 10px; 
-            margin-top: 15px; /* Тепер зверху відступ */
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            overflow: hidden;
-            background: #f9f9f9;
+            width: 100%; height: 250px; border: 2px dashed #ddd; border-radius: 10px; 
+            margin-top: 15px; display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; background: #f9f9f9;
         }
         #preview-img { max-width: 100%; max-height: 100%; display: none; }
         .placeholder-text { color: #aaa; font-size: 14px; }
-
         .btn-file { border: 1px solid #000; padding: 12px; border-radius: 10px; width: 100%; display: block; text-align: center; cursor: pointer; }
-        
         #cropper-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center; align-items: center;
-            flex-direction: column;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column;
         }
         .cropper-container-box { width: 95%; max-width: 800px; background: white; padding: 20px; border-radius: 15px; }
         .cropper-area { max-height: 60vh; margin-bottom: 20px; overflow: hidden; }
-        
         .submit-btn, .crop-save-btn { background-color: #a11e1e; color: white; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
-        .crop-save-btn { margin-top: 10px; }
+        .error-banner { color: #a11e1e; background: #fdeaea; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #a11e1e; }
     </style>
 </head>
 <body class="add-product-body">
@@ -88,10 +77,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
     </div>
 
     <div class="add-card">
+        <!-- Вивід повідомлень -->
         <?php if($success_msg): ?>
-            <div class="success-banner" style="color: green; text-align: center; margin-bottom: 15px;"><?php echo $success_msg; ?></div>
+            <div style="color: green; text-align: center; margin-bottom: 15px; font-weight: bold;"><?php echo $success_msg; ?></div>
         <?php endif; ?>
 
+        <?php if($error_msg): ?>
+            <div class="error-banner"><?php echo $error_msg; ?></div>
+        <?php endif; ?>
+
+        <!-- Форма з валідацією HTML5 (required) -->
         <form id="product-form" method="POST">
             <div class="form-group">
                 <label>Назва товару</label>
@@ -100,14 +95,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
 
             <div class="form-group">
                 <label>Ціна (грн)</label>
-                <input type="number" name="price" step="0.01" required placeholder="0.00">
+                <input type="number" name="price" step="0.01" min="0.01" required placeholder="0.00">
             </div>
 
             <div class="form-group">
                 <label>Фото товару</label>
                 <label for="image-input" class="btn-file">Обрати фото</label>
+                <!-- Поле файлу не обов'язкове (required), бо ми перевіряємо приховане поле cropped_image -->
                 <input type="file" id="image-input" accept="image/*" style="display:none;">
-                <input type="hidden" name="cropped_image" id="cropped_image_input">
+                
+                <!-- Це поле ОБО'ЯЗКОВО має бути заповнене для відправки форми -->
+                <input type="hidden" name="cropped_image" id="cropped_image_input" required>
                 
                 <div id="preview-container">
                     <img id="preview-img" src="#" alt="Прев'ю">
@@ -138,6 +136,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
         const previewImg = document.getElementById('preview-img');
         const placeholderText = document.querySelector('.placeholder-text');
         const croppedInput = document.getElementById('cropped_image_input');
+        const productForm = document.getElementById('product-form');
+
+        // Клієнтська валідація при спробі відправити форму
+        productForm.addEventListener('submit', function(e) {
+            if (!croppedInput.value) {
+                e.preventDefault(); // Зупиняємо відправку
+                alert("Будь ласка, оберіть та збережіть фото товару!");
+            }
+        });
 
         imageInput.addEventListener('change', function(e) {
             const files = e.target.files;
@@ -146,18 +153,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
                 reader.onload = function(event) {
                     cropperImg.src = event.target.result;
                     cropperModal.style.display = 'flex';
-                    
                     if (cropper) cropper.destroy();
-                    
-                    // Налаштування для вільної обрізки
                     cropper = new Cropper(cropperImg, {
-                        aspectRatio: NaN, // Дозволяє змінювати пропорції як завгодно (NaN = вільний)
-                        viewMode: 1,      // Обмежує рамку межами зображення
-                        autoCropArea: 1,  // При відкритті виділяє все фото
-                        background: true,
-                        movable: true,
-                        zoomable: true,
-                        scalable: true
+                        aspectRatio: NaN,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        background: true
                     });
                 };
                 reader.readAsDataURL(files[0]);
@@ -165,16 +166,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['cropped_image'])){
         });
 
         document.getElementById('save-crop').addEventListener('click', function() {
-            // Отримуємо полотно з обрізаним зображенням
-            // Якщо не вказувати width/height тут, збережеться оригінальний розмір обрізаної області
             const canvas = cropper.getCroppedCanvas();
-
             const base64Image = canvas.toDataURL('image/png');
             
             previewImg.src = base64Image;
             previewImg.style.display = 'block';
             placeholderText.style.display = 'none';
             
+            // Записуємо дані в приховане поле — тепер валідація пройде
             croppedInput.value = base64Image;
             
             closeModal();
