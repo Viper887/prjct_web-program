@@ -322,8 +322,6 @@ $orders = $stmt_orders->fetchAll();
             <p class="profile-meta-title">Ваші дані (бачите тільки ви):</p>
             <p class="profile-meta-title" style="margin-top: 15px; color: #666;">Email:</p>
             <p class="profile-meta-value"><?php echo htmlspecialchars($user['email'] ?? 'example@gmail.com'); ?></p>
-            <p class="profile-meta-title" style="color: #666;">Роль:</p>
-            <p class="profile-meta-value">buyer</p>
             
             <a href="index.php" class="submit-btn">+ До покупок</a>
         </div>

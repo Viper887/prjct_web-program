@@ -4,12 +4,38 @@ require 'config.php';
 $seller_id = $_GET['id'] ?? null;
 if (!$seller_id) die("Продавця не знайдено");
 
+// --- ЛОГІКА ВИДАЛЕННЯ ТОВАРУ ---
+if (isset($_GET['delete_product']) && isset($_SESSION['user_id'])) {
+    $product_id = $_GET['delete_product'];
+    
+    // Перевіряємо, чи цей товар дійсно належить поточному продавцю (захист)
+    $stmt_check = $pdo->prepare("SELECT image_path FROM products WHERE id = ? AND seller_id = ?");
+    $stmt_check->execute([$product_id, $_SESSION['user_id']]);
+    $product_to_delete = $stmt_check->fetch();
+
+    if ($product_to_delete) {
+        // Видаляємо файл зображення з сервера
+        if (file_exists($product_to_delete['image_path'])) {
+            unlink($product_to_delete['image_path']);
+        }
+        
+        // Видаляємо запис з бази даних
+        $stmt_del = $pdo->prepare("DELETE FROM products WHERE id = ?");
+        $stmt_del->execute([$product_id]);
+        
+        // Перенаправляємо назад, щоб очистити GET-параметри
+        header("Location: seller_profile.php?id=" . $_SESSION['user_id']);
+        exit;
+    }
+}
+// ------------------------------
+
 // Отримуємо дані продавця
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND role = 'seller'");
 $stmt->execute([$seller_id]);
 $seller = $stmt->fetch();
 
-if (!$seller) die("Продавця не існує"); // Виправив "Покупця" на "Продавця"
+if (!$seller) die("Продавця не існує");
 
 // Перевіряємо, чи це власник сторінки
 $is_owner = (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $seller_id);
@@ -27,95 +53,37 @@ $my_products = $stmt_items->fetchAll();
     <title><?= htmlspecialchars($seller['name']) ?> | Craft Box</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .profile-layout { 
-            display: grid; 
-            grid-template-columns: 1.2fr 2.5fr; 
-            gap: 40px; 
-            max-width: 1400px; 
-            margin: 40px auto; 
-            padding: 0 40px; 
-        }
-
-        .info-card { 
-            background: white; 
-            padding: 35px; 
-            border-radius: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            height: fit-content; 
-            font-size: 1.1rem; 
-        }
-
-        .product-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 20px; 
-            margin-top: 20px;
-        }
-
+        .profile-layout { display: grid; grid-template-columns: 1.2fr 2.5fr; gap: 40px; max-width: 1400px; margin: 40px auto; padding: 0 40px; }
+        .info-card { background: white; padding: 35px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); height: fit-content; font-size: 1.1rem; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        
         .product-item-card {
-            background: white;
-            border-radius: 15px; 
-            padding: 15px; 
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; 
-            height: 100%; 
+            background: white; border-radius: 15px; padding: 15px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+            justify-content: space-between; height: 100%; position: relative;
         }
 
-        .product-item-card img { 
-            width: 100%;
-            height: 180px;
-            object-fit: contain;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            background-color: #f9f9f9;
-        }
-
-        .product-item-card h4 {
-            font-size: 1.1rem;
-            margin: 5px 0;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .price-text {
-            color: #a11e1e;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin: 5px 0;
-        }
-
-        .buy-link {
+        .product-item-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; background-color: #f9f9f9; }
+        .product-item-card h4 { font-size: 1.1rem; margin: 5px 0; font-weight: 600; color: #333; }
+        .price-text { color: #a11e1e; font-weight: bold; font-size: 1.1rem; margin: 5px 0; }
+        
+        .buy-link { text-decoration: none; color: blue; font-size: 14px; margin-top: auto; padding-top: 10px; }
+        
+        /* Стиль для кнопки видалення */
+        .delete-btn {
             text-decoration: none;
-            color: blue;
-            font-size: 14px;
-            margin-top: auto;
-            padding-top: 10px;
+            color: #ff4d4d;
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ff4d4d;
+            border-radius: 8px;
+            transition: 0.3s;
         }
+        .delete-btn:hover { background: #ff4d4d; color: white; }
 
-        .badge-seller { 
-            background: #a11e1e; 
-            color: white; 
-            padding: 4px 12px; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-
-        .submit-btn {
-            display: block;
-            background-color: #a11e1e;
-            color: white !important;
-            padding: 10px;
-            border-radius: 20px;
-            text-align: center;
-            text-decoration: none;
-            margin-top: 20px;
-            font-weight: bold;
-        }
+        .badge-seller { background: #a11e1e; color: white; padding: 4px 12px; border-radius: 8px; font-size: 14px; vertical-align: middle; margin-left: 10px; }
+        .submit-btn { display: block; background-color: #a11e1e; color: white !important; padding: 10px; border-radius: 20px; text-align: center; text-decoration: none; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body style="background-color: #e6e2dd;">
@@ -126,14 +94,12 @@ $my_products = $stmt_items->fetchAll();
     </div>
 
     <div class="profile-layout">
-        
         <div class="info-card">
             <h2 style="margin-top: 0;"><?= htmlspecialchars($seller['name']) ?> <span class="badge-seller">Продавець</span></h2>
             
             <?php if ($is_owner): ?>
-                <p style="margin-top: 20px;"><strong>Ваші дані (бачите тільки ви):</strong></p>
+                <p style="margin-top: 20px;"><strong>Ваші дані:</strong></p>
                 <p>Email: <?= htmlspecialchars($seller['email']) ?></p>
-                <p>Роль: <?= htmlspecialchars($seller['role']) ?></p>
                 <a href="add_product.php" class="submit-btn">+ Додати товар</a>
             <?php else: ?>
                 <p style="margin-top: 20px;">Цей продавець пропонує унікальні вироби ручної роботи.</p>
@@ -141,8 +107,6 @@ $my_products = $stmt_items->fetchAll();
         </div>
 
         <div class="content-area">
-            <!-- Блок "Ваші замовлення" видалено -->
-
             <h3>Товари продавця:</h3>
             <div class="product-grid">
                 <?php if (empty($my_products)): ?>
@@ -154,7 +118,14 @@ $my_products = $stmt_items->fetchAll();
                             <h4><?= htmlspecialchars($item['title']) ?></h4>
                             <p class="price-text"><?= number_format($item['price'], 2, '.', '') ?> грн</p>
                             
-                            <?php if (!$is_owner): ?>
+                            <?php if ($is_owner): ?>
+                                <!-- Кнопка видалення для власника -->
+                                <a href="seller_profile.php?id=<?= $seller_id ?>&delete_product=<?= $item['id'] ?>" 
+                                   class="delete-btn" 
+                                   onclick="return confirm('Ви впевнені, що хочете видалити цей товар?')">
+                                   Видалити товар
+                                </a>
+                            <?php else: ?>
                                 <a href="index.php?add_to_cart=<?= $item['id'] ?>" class="buy-link">В кошик</a>
                             <?php endif; ?>
                         </div>
@@ -163,6 +134,5 @@ $my_products = $stmt_items->fetchAll();
             </div>
         </div>
     </div>
-
 </body>
 </html>
