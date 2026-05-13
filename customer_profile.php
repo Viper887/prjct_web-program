@@ -110,7 +110,7 @@ $orders = $stmt_orders->fetchAll();
 
         .profile-meta-value {
             font-size: 15px;
-            color: #555;
+            color: #000;
             word-break: break-all;
             margin: 0;
         }
@@ -158,16 +158,18 @@ $orders = $stmt_orders->fetchAll();
         }
 
         /* Велика картка замовлення */
-        .product-item-card {
-            background: white;
-            border-radius: 25px; 
-            padding: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; 
-            box-sizing: border-box;
-        }
+.product-item-card {
+    background: white;
+    border-radius: 25px; 
+    padding: 25px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    box-sizing: border-box;
+    /* Захист від розширення картки */
+    overflow: hidden; 
+}
 
         .order-number {
             font-size: 1.2rem;
@@ -256,14 +258,21 @@ $orders = $stmt_orders->fetchAll();
             flex-grow: 1;
         }
 
-        .order-item-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #222;
-            margin: 0;
-            line-height: 1.2;
-            text-align: left;
-        }
+.order-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    margin: 0;
+    line-height: 1.2;
+    text-align: left;
+    
+    /* Додаємо ці рядки для переносу довгих слів/цифр */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all; /* Примусовий розрив, якщо назва — суцільний набір символів */
+    white-space: normal;
+    max-width: 100%;
+}
 
         .order-item-qty {
             font-size: 11px;
@@ -320,7 +329,7 @@ $orders = $stmt_orders->fetchAll();
             </div>
             
             <p class="profile-meta-title">Ваші дані (бачите тільки ви):</p>
-            <p class="profile-meta-title" style="margin-top: 15px; color: #666;">Email:</p>
+            <p class="profile-meta-title" style="margin-top: 15px; color: #000;">Email:</p>
             <p class="profile-meta-value"><?php echo htmlspecialchars($user['email'] ?? 'example@gmail.com'); ?></p>
             
             <a href="index.php" class="submit-btn">+ До покупок</a>

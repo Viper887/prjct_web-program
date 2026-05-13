@@ -61,15 +61,30 @@ $my_products = $stmt_items->fetchAll();
             background: white; border-radius: 15px; padding: 15px; text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column;
             justify-content: space-between; height: 100%; position: relative;
+            /* Запобігаємо розширенню самої картки */
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .product-item-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; background-color: #f9f9f9; }
-        .product-item-card h4 { font-size: 1.1rem; margin: 5px 0; font-weight: 600; color: #333; }
+        
+        /* ВИПРАВЛЕННЯ ДЛЯ ПЕРЕНОСУ НАЗВИ */
+        .product-item-card h4 { 
+            font-size: 1.1rem; 
+            margin: 5px 0; 
+            font-weight: 600; 
+            color: #333;
+            /* Магія переносу тут: */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all; /* Примусово розриває навіть довгі набори цифр */
+            white-space: normal;
+            max-width: 100%;
+        }
+
         .price-text { color: #a11e1e; font-weight: bold; font-size: 1.1rem; margin: 5px 0; }
         
-        .buy-link { text-decoration: none; color: blue; font-size: 14px; margin-top: auto; padding-top: 10px; }
-        
-        /* Стиль для кнопки видалення */
         .delete-btn {
             text-decoration: none;
             color: #ff4d4d;
@@ -81,6 +96,29 @@ $my_products = $stmt_items->fetchAll();
             transition: 0.3s;
         }
         .delete-btn:hover { background: #ff4d4d; color: white; }
+
+        .buy-link {
+            display: block;
+            background-color: #a11e1e;
+            color: white !important;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            border: none;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(161, 30, 30, 0.2);
+            text-align: center;
+        }
+
+        .buy-link:hover {
+            background-color: #7e1717;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(161, 30, 30, 0.3);
+        }
 
         .badge-seller { background: #a11e1e; color: white; padding: 4px 12px; border-radius: 8px; font-size: 14px; vertical-align: middle; margin-left: 10px; }
         .submit-btn { display: block; background-color: #a11e1e; color: white !important; padding: 10px; border-radius: 20px; text-align: center; text-decoration: none; margin-top: 20px; font-weight: bold; }
@@ -119,7 +157,6 @@ $my_products = $stmt_items->fetchAll();
                             <p class="price-text"><?= number_format($item['price'], 2, '.', '') ?> грн</p>
                             
                             <?php if ($is_owner): ?>
-                                <!-- Кнопка видалення для власника -->
                                 <a href="seller_profile.php?id=<?= $seller_id ?>&delete_product=<?= $item['id'] ?>" 
                                    class="delete-btn" 
                                    onclick="return confirm('Ви впевнені, що хочете видалити цей товар?')">

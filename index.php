@@ -170,6 +170,55 @@ function include_cart_content($pdo) {
         }
         .user-dropdown-content a:hover { background-color: #f9f9f9; color: #a11e1e; }
         .user-dropdown-content .welcome-text { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px; }
+
+        /* 1. ПЕРЕНОСИ У КАТАЛОЗІ (Головна сторінка) */
+.card h3 {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    color: #333;
+    /* Магія переносу: */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all; /* Для довгих послідовностей цифр або літер */
+    white-space: normal;
+    display: block;
+    max-width: 100%;
+}
+
+/* 2. ПЕРЕНОСИ У ВИСУВНОМУ КОШИКУ (Side Cart) */
+.cart-item-title {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+    display: block;
+    /* Магія переносу: */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    white-space: normal;
+    max-width: 180px; /* Обмежуємо ширину, щоб не «наповзало» на кнопку видалення */
+}
+
+/* Додатково: щоб сама картка товару не деформувалася */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden; /* Захист від виходу контенту */
+}
+
+/* Захист елементів кошика */
+.cart-item-details {
+    flex: 1;
+    min-width: 0; /* Важливо для роботи переносу всередині flex-контейнера */
+    padding-right: 10px;
+}
+
     </style>
 </head>
 <body>
