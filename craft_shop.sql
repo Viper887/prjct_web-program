@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Май 12 2026 г., 13:26
+-- Время создания: Май 13 2026 г., 20:58
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -55,7 +55,8 @@ INSERT INTO `orders` (`id`, `user_id`, `customer_name`, `phone`, `address`, `tot
 (25, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №14 (до 30 кг на одне місце): вул. Симона Петлюри, 45 | Оплата: При отриманні', 48.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":4}]', 'new', '2026-05-12 10:52:26'),
 (26, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №2 (до 200 кг): вул. Героїв ОУН, 26 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:04:20'),
 (27, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №9 (до 30 кг): вул. Гоголя, 20 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:07:17'),
-(28, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №8 (до 30 кг на одне місце): бульв. Богдана Хмельницького, 21 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:07:56');
+(28, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №8 (до 30 кг на одне місце): бульв. Богдана Хмельницького, 21 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:07:56'),
+(29, 18, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №15 (до 30 кг на одне місце): вул. Європейська, 94 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-13 18:54:38');
 
 -- --------------------------------------------------------
 
@@ -92,17 +93,20 @@ CREATE TABLE `users` (
   `name` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `role` enum('buyer','seller') DEFAULT NULL
+  `role` enum('buyer','seller') DEFAULT NULL,
+  `verification_code` varchar(6) DEFAULT NULL,
+  `is_verified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
-(14, 'EuroPenetrator', 'vladyslav.mizin@gmail.com', '$2y$10$hTPZnW1BnDbapGKlp5.3jucJAIdC8cMEyinbUo0oWo8uK4s4i3za.', 'seller'),
-(17, 'Володіє', 'kakahakona@gmail.com', '$2y$10$own0.qSYbDfdMn6qdaPmyObu2qr.otVIXvqwRZFyD81YkedltnsN2', 'seller'),
-(18, 'Relationship', 'vladyslav.mizin228@gmail.com', '$2y$10$SNLx3DSBH7yNLgwZHaihVOc9C9utg5vN35dNQqK8qwsiWKoJmq5Pa', 'buyer');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `verification_code`, `is_verified`) VALUES
+(14, 'EuroPenetrator', 'vladyslav.mizin@gmail.com', '$2y$10$hTPZnW1BnDbapGKlp5.3jucJAIdC8cMEyinbUo0oWo8uK4s4i3za.', 'seller', NULL, 0),
+(17, 'Володіє', 'kakahakona@gmail.com', '$2y$10$own0.qSYbDfdMn6qdaPmyObu2qr.otVIXvqwRZFyD81YkedltnsN2', 'seller', NULL, 0),
+(18, 'Relationship', 'vladyslav.mizin228@gmail.com', '$2y$10$SNLx3DSBH7yNLgwZHaihVOc9C9utg5vN35dNQqK8qwsiWKoJmq5Pa', 'buyer', NULL, 0),
+(23, 'Курсує', 'Arizonchik337@gmail.com', '$2y$10$QfZW0EmtF/kz5HZMjbzP1.2xb/RbDXDlin2z63uOKJ03a9ZNXRbBO', 'buyer', NULL, 0);
 
 --
 -- Индексы сохранённых таблиц
@@ -137,7 +141,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT для таблицы `products`
@@ -149,7 +153,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
