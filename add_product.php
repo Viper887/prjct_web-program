@@ -11,10 +11,14 @@ $error_msg = "";
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $title = trim($_POST['title']);
     $price = floatval($_POST['price']);
+    // --- НОВІ ПОЛЯ ---
+    $description = trim($_POST['description'] ?? '');
+    $weight = trim($_POST['weight'] ?? '');
+    // -----------------
     $cropped_image = $_POST['cropped_image'] ?? '';
 
     if(empty($title) || empty($price) || empty($cropped_image)) {
-        $error_msg = "Будь ласка, заповніть усі поля та додайте фото!";
+        $error_msg = "Будь ласка, заповніть усі обов'язкові поля та додайте фото!";
     } elseif (mb_strlen($title) < 3 || mb_strlen($title) > 50) {
         $error_msg = "Назва має бути від 3 до 50 символів!";
     } elseif ($price <= 0 || $price > 1000000) {
@@ -30,8 +34,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         if (!is_dir('uploads')) mkdir('uploads', 0777, true);
 
         if(file_put_contents($path, $data)) {
-            $stmt = $pdo->prepare("INSERT INTO products (seller_id, title, price, image_path) VALUES (?,?,?,?)");
-            if($stmt->execute([$_SESSION['user_id'], $title, $price, $path])) {
+            // Оновлений SQL-запит з урахуванням нових колонок
+            $stmt = $pdo->prepare("INSERT INTO products (seller_id, title, price, description, weight, image_path) VALUES (?,?,?,?,?,?)");
+            if($stmt->execute([$_SESSION['user_id'], $title, $price, $description, $weight, $path])) {
                 $success_msg = "Товар успішно додано!";
             } else {
                 $error_msg = "Помилка при збереженні в базу даних.";
@@ -58,7 +63,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         .add-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; box-sizing: border-box; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: #333; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; font-family: inherit; }
+        .form-group textarea { height: 100px; resize: vertical; }
         
         #preview-container { 
             width: 100%; height: 250px; border: 2px dashed #ddd; border-radius: 10px; 
@@ -103,8 +109,18 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             </div>
 
             <div class="form-group">
+                <label>Вага / Грамовка (напр. 250 г)</label>
+                <input type="text" name="weight" placeholder="250 г" value="<?= htmlspecialchars($_POST['weight'] ?? '') ?>">
+            </div>
+
+            <div class="form-group">
                 <label>Ціна (грн) (від 0,01 до 1,000,000)</label>
                 <input type="number" name="price" step="0.01" min="0.01" max="1000000" required placeholder="0.00" value="<?= htmlspecialchars($_POST['price'] ?? '') ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Опис товару</label>
+                <textarea name="description" placeholder="Детально опишіть ваш товар..."><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
@@ -153,7 +169,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                     cropperModal.style.display = 'flex';
                     if (cropper) cropper.destroy();
                     cropper = new Cropper(cropperImg, {
-                        aspectRatio: null, // ВІЛЬНА ОБРІЗКА (немає фіксованих пропорцій)
+                        aspectRatio: null, 
                         viewMode: 1,
                         autoCropArea: 1
                     });

@@ -46,7 +46,8 @@ function include_cart_content($pdo) {
         <ul class="cart-list">
             <?php 
             $total_sum = 0;
-            $ids = implode(',', array_keys($_SESSION['cart']));
+            $keys = array_keys($_SESSION['cart']);
+            $ids = implode(',', array_map('intval', $keys));
             $stmt_cart = $pdo->query("SELECT * FROM products WHERE id IN ($ids)");
             while($item = $stmt_cart->fetch()): 
                 $qty = $_SESSION['cart'][$item['id']];
@@ -102,7 +103,6 @@ function include_cart_content($pdo) {
         .side-cart-content { transition: opacity 0.2s; }
         .loading { opacity: 0.5; pointer-events: none; }
 
-        /* ВИРІВНЮВАННЯ ХЕДЕРА */
         .header-logo { 
             display: flex; 
             justify-content: space-between; 
@@ -111,114 +111,49 @@ function include_cart_content($pdo) {
             position: relative;
         }
 
-        /* Порожній блок зліва для ідеального центрування заголовка */
-        .header-logo::before {
-            content: "";
-            flex: 1;
-        }
-
-        .header-logo h1 { 
-            flex: 2;
-            text-align: center;
-            margin: 0;
-        }
-
-        .header-actions { 
-            flex: 1;
-            display: flex; 
-            justify-content: flex-end; 
-            align-items: center; 
-            gap: 20px; 
-        }
+        .header-logo::before { content: ""; flex: 1; }
+        .header-logo h1 { flex: 2; text-align: center; margin: 0; }
+        .header-actions { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
         
         .user-dropdown-container { position: relative; }
-.user-icon-img { 
-            width: 30px; 
-            height: 30px; 
-            cursor: pointer; 
-            display: block; 
-            filter: brightness(0) invert(1);
-            /* Убираем возможные лишние отступы */
-            margin: 0;
-        }
+        .user-icon-img { width: 30px; height: 30px; cursor: pointer; display: block; filter: brightness(0) invert(1); margin: 0; }
         
         .user-dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background-color: #fff;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
-            z-index: 1000;
-            border-radius: 8px;
-            padding: 10px 0;
-            margin-top: 15px;
-            border: 1px solid #eee;
+            display: none; position: absolute; right: 0; top: 100%; background-color: #fff;
+            min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); z-index: 1000;
+            border-radius: 8px; padding: 10px 0; margin-top: 15px; border: 1px solid #eee;
         }
         .user-dropdown-content.active { display: block; }
-        
-.user-dropdown-content a, .user-dropdown-content p {
-            color: #333;
-            padding: 10px 16px;
-            text-decoration: none;
-            display: block;
-            margin: 0;
-            font-size: 14px;
-            /* Змінено з left на center */
-            text-align: center; 
+        .user-dropdown-content a, .user-dropdown-content p {
+            color: #333; padding: 10px 16px; text-decoration: none; display: block;
+            margin: 0; font-size: 14px; text-align: center; 
         }
         .user-dropdown-content a:hover { background-color: #f9f9f9; color: #a11e1e; }
         .user-dropdown-content .welcome-text { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px; }
 
-        /* 1. ПЕРЕНОСИ У КАТАЛОЗІ (Головна сторінка) */
-.card h3 {
-    font-size: 1.1rem;
-    margin: 10px 0;
-    color: #333;
-    /* Магія переносу: */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-all; /* Для довгих послідовностей цифр або літер */
-    white-space: normal;
-    display: block;
-    max-width: 100%;
-}
+        /* СТИЛІ ДЛЯ ПОСИЛАНЬ НА ТОВАР */
+        .product-link { text-decoration: none; color: inherit; display: block; }
+        .card img { transition: transform 0.3s ease; }
+        .card:hover img { transform: scale(1.02); }
+        
+        .card h3 {
+            font-size: 1.1rem; margin: 10px 0; color: #333;
+            word-wrap: break-word; overflow-wrap: break-word;
+            display: block; max-width: 100%;
+        }
+        .card h3:hover { color: #a11e1e; }
 
-/* 2. ПЕРЕНОСИ У ВИСУВНОМУ КОШИКУ (Side Cart) */
-.cart-item-title {
-    font-weight: bold;
-    color: #333;
-    font-size: 14px;
-    display: block;
-    /* Магія переносу: */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-all;
-    white-space: normal;
-    max-width: 180px; /* Обмежуємо ширину, щоб не «наповзало» на кнопку видалення */
-}
+        .cart-item-title {
+            font-weight: bold; color: #333; font-size: 14px; display: block;
+            word-wrap: break-word; overflow-wrap: break-word; max-width: 180px;
+        }
 
-/* Додатково: щоб сама картка товару не деформувалася */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    overflow: hidden; /* Захист від виходу контенту */
-}
-
-/* Захист елементів кошика */
-.cart-item-details {
-    flex: 1;
-    min-width: 0; /* Важливо для роботи переносу всередині flex-контейнера */
-    padding-right: 10px;
-}
-
+        .card {
+            background: white; padding: 20px; border-radius: 15px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex;
+            flex-direction: column; justify-content: space-between; overflow: hidden;
+        }
+        .cart-item-details { flex: 1; min-width: 0; padding-right: 10px; }
     </style>
 </head>
 <body>
@@ -246,12 +181,10 @@ function include_cart_content($pdo) {
                         $profile_page = ($_SESSION['role'] == 'seller') ? 'seller_profile.php' : 'customer_profile.php';
                         ?>
                         <a href="<?= $profile_page; ?>?id=<?= $_SESSION['user_id']; ?>">Мій кабінет</a>
-                        
                         <?php if ($_SESSION['role'] == 'seller'): ?>
                             <a href="admin_orders.php">Переглянути замовлення</a>
                             <a href="add_product.php">Додати товар</a>
                         <?php endif; ?>
-                        
                         <a href="logout.php" style="color: #a11e1e; border-top: 1px solid #eee;">Вийти</a>
                     <?php else: ?>
                         <a href="login.php">Увійти</a>
@@ -270,7 +203,6 @@ function include_cart_content($pdo) {
             </div>
             <span class="close-cart" onclick="toggleCart()">&times;</span>
         </div>
-        
         <div class="side-cart-content" id="ajax-cart-container">
             <?php include_cart_content($pdo); ?>
         </div>
@@ -287,11 +219,18 @@ function include_cart_content($pdo) {
         $stmt = $pdo->query("SELECT p.*, u.name as seller_name FROM products p JOIN users u ON p.seller_id = u.id");
         while($row = $stmt->fetch()): ?>
             <div class='card'>
-                <img src='<?php echo htmlspecialchars($row['image_path']); ?>' alt=''>
-                <h3><?php echo htmlspecialchars($row['title']); ?></h3>
+                <a href="product.php?id=<?= $row['id'] ?>" class="product-link">
+                    <img src='<?php echo htmlspecialchars($row['image_path']); ?>' alt=''>
+                </a>
+
+                <a href="product.php?id=<?= $row['id'] ?>" class="product-link">
+                    <h3><?php echo htmlspecialchars($row['title']); ?></h3>
+                </a>
+
                 <a href="seller_profile.php?id=<?php echo $row['seller_id']; ?>" class="seller-link">
                     Продавець: <b><?php echo htmlspecialchars($row['seller_name']); ?></b>
                 </a>
+                
                 <p class='price'><?php echo number_format($row['price'], 2, '.', ''); ?> грн</p>
                 <a href="index.php?add_to_cart=<?= $row['id'] ?>" class="buy-btn ajax-action">Додати в кошик</a>
             </div>
