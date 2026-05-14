@@ -17,37 +17,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $delivery_type = $_POST['delivery_type'] ?? 'np';
     $payment_method = $_POST['payment_method'] ?? 'cod';
 
-    // --- ПЕРЕВІРКА (ВАЛІДАЦІЯ) ---
-    if (empty($name) || mb_strlen($name) < 2) {
-        $error = "Будь ласка, введіть коректне ім'я.";
-    } elseif (!preg_match('/^\+380\d{9}$/', $phone)) {
-        $error = "Некоректний номер телефону. Формат: +380XXXXXXXXX";
-    } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Введено некоректну адресу Email.";
+    // Серверна валідація (про всяк випадок)
+    if (empty($name) || !preg_match('/^\+380\d{9}$/', $phone)) {
+        $error = "Некоректні дані. Перевірте номер телефону.";
     } else {
         // Формування адреси
         if ($delivery_type === 'np') {
             $city = htmlspecialchars(trim($_POST['np_city_name'] ?? ''));
-            $city_ref = htmlspecialchars(trim($_POST['np_city_ref'] ?? ''));
             $office = htmlspecialchars(trim($_POST['np_office'] ?? ''));
-            
-            if (empty($city) || empty($office)) {
-                $error = "Оберіть місто зі списку та вкажіть відділення.";
-            }
             $full_address = "Нова Пошта: м. $city, $office";
         } else {
             $city = htmlspecialchars(trim($_POST['home_city'] ?? ''));
             $street = htmlspecialchars(trim($_POST['home_street'] ?? ''));
             $house = htmlspecialchars(trim($_POST['home_house'] ?? ''));
-            if (empty($city) || empty($street) || empty($house)) {
-                $error = "Для кур'єрської доставки заповніть місто, вулицю та будинок.";
-            }
             $flat = htmlspecialchars(trim($_POST['home_flat'] ?? ''));
             $full_address = "Кур'єр: м. $city, вул. $street, буд. $house, кв. $flat";
         }
-    }
 
-    if (empty($error)) {
         try {
             $ids = array_keys($_SESSION['cart']);
             $placeholders = str_repeat('?,', count($ids) - 1) . '?';
@@ -117,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .result-item:hover { background: #f9f9f9; color: #ff6b6b; }
         .form-group { position: relative; margin-bottom: 15px; }
         select#np_office { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: white; }
-        .error-msg { color: #a11e1e; background: #ffe6e6; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ffb3b3; }
+        .error-msg { color: #a11e1e; background: #ffe6e6; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #ffb3b3; display: none; }
         .hidden-block { display: none; }
         .hidden-block.active { display: block; }
     </style>
@@ -140,9 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     <?php else: ?>
         
-        <?php if ($error): ?>
-            <div class="error-msg"><?php echo $error; ?></div>
-        <?php endif; ?>
+        <div id="error_container" class="error-msg" <?php echo $error ? 'style="display:block;"' : ''; ?>>
+            <?php echo $error; ?>
+        </div>
 
         <form method="POST" id="mainOrderForm">
             <div class="checkout-grid">
@@ -150,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <span class="section-title">1. Контактні дані</span>
                     <div class="form-group">
                         <label>Прізвище, Ім'я *</label>
-                        <input type="text" name="name" placeholder="Введіть дані" value="<?php echo htmlspecialchars($name ?? ''); ?>" required minlength="2">
+                        <input type="text" name="name" id="name_input" placeholder="Введіть дані" value="<?php echo htmlspecialchars($name ?? ''); ?>" required minlength="2">
                     </div>
                     <div class="form-row" style="display: flex; gap: 10px;">
                         <div class="form-group" style="flex:1;">
@@ -178,9 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="form-group" style="flex:1;">
                                 <label>Місто</label>
                                 <input type="text" id="np_city_search" placeholder="Почніть вводити..." autocomplete="off">
-                                <!-- ТУТ БУЛА ПОМИЛКА: додаємо контейнер для результатів -->
                                 <div id="city_results" class="search-results"></div>
-                                
                                 <input type="hidden" name="np_city_ref" id="np_city_ref">
                                 <input type="hidden" name="np_city_name" id="np_city_name">
                             </div>
@@ -209,10 +193,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <span class="section-title">3. Спосіб оплати</span>
                     <div class="selector-box" style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <label class="opt active" onclick="toggleTab('payment', 'cod', this)">
-                            <input type="radio" name="payment_method" value="cod" checked style="display:none;"> При отриманні
+                            <input type="radio" name="payment_method" id="pay_cod" value="cod" checked style="display:none;"> При отриманні
                         </label>
                         <label class="opt" onclick="toggleTab('payment', 'card', this)">
-                            <input type="radio" name="payment_method" value="card" style="display:none;"> Банківська карта
+                            <input type="radio" name="payment_method" id="pay_card" value="card" style="display:none;"> Банківська карта
                         </label>
                     </div>
 
@@ -268,10 +252,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const cityResults = document.getElementById('city_results');
     const officeSelect = document.getElementById('np_office');
     const form = document.getElementById('mainOrderForm');
+    const errorContainer = document.getElementById('error_container');
+
+    // --- ВАЛІДАЦІЯ ПЕРЕД ВІДПРАВКОЮ ---
+    form.onsubmit = function(e) {
+        let errors = [];
+        const phone = document.getElementById('phone_input').value;
+        const isCard = document.getElementById('pay_card').checked;
+
+        // Перевірка телефону (має бути +380 і 9 цифр)
+        if (phone.length < 13) {
+            errors.push("Будь ласка, введіть повний номер телефону.");
+        }
+
+        // Перевірка карти (якщо обрано метод оплати "Карта")
+        if (isCard) {
+            const cNum = document.getElementById('card_num').value.replace(/\s/g, '');
+            const cDate = document.getElementById('card_date').value;
+            const cCvv = document.getElementById('card_cvv').value;
+
+            if (cNum.length < 16) errors.push("Введіть коректний номер карти.");
+            if (cDate.length < 5) errors.push("Введіть термін дії карти (ММ/РР).");
+            if (cCvv.length < 3) errors.push("Введіть код CVV.");
+        }
+
+        // Якщо є помилки - виводимо їх без перезавантаження
+        if (errors.length > 0) {
+            e.preventDefault(); // Зупиняємо відправку форми
+            errorContainer.innerHTML = errors.join('<br>');
+            errorContainer.style.display = 'block';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            return false;
+        }
+    };
 
     citySearch.addEventListener('input', function() {
         let val = this.value.trim();
-        
         document.getElementById('np_city_ref').value = '';
         document.getElementById('np_city_name').value = '';
         officeSelect.innerHTML = '<option value="">Оберіть відділення</option>';
@@ -282,7 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ВАЖЛИВО: перевірте, чи файл np_api.php працює коректно
         fetch(`np_api.php?action=getCities&q=${encodeURIComponent(val)}`)
             .then(r => r.json())
             .then(res => {
@@ -335,6 +350,15 @@ document.addEventListener('DOMContentLoaded', function() {
     phoneInput.addEventListener('input', function (e) {
         if (!e.target.value.startsWith('+380')) e.target.value = '+380';
         e.target.value = '+' + e.target.value.replace(/[^\d]/g, '').substring(0, 12);
+    });
+
+    // Маска для номера карти (пробіли)
+    document.getElementById('card_num').addEventListener('input', function (e) {
+        let target = e.target;
+        let position = target.selectionEnd;
+        let length = target.value.length;
+        target.value = target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+        target.selectionEnd = position + (target.value.length > length ? 1 : 0);
     });
 });
 </script>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Май 13 2026 г., 20:58
+-- Время создания: Май 14 2026 г., 23:29
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -46,17 +46,11 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `customer_name`, `phone`, `address`, `total_price`, `items_json`, `status`, `created_at`) VALUES
-(19, 14, 'Mizin Vladyslav', '+380500635285', 'Нова Пошта: м. Дивізія, Пункт приймання-видачі (до 30 кг): вул. Дружби, 1/1 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-08 09:53:32'),
-(20, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №1: вул. Ветеринарна, 22 (заїзд з вул. Європейська | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-08 10:05:43'),
-(21, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №1: вул. Ветеринарна, 22 (заїзд з вул. Європейська | Оплата: При отриманні', 36.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":3}]', 'new', '2026-05-09 09:25:24'),
-(22, 18, 'ФІавфівфі', '+3800000000', 'Нова Пошта: м. Полтава, Відділення №24 (до 30 кг на одне місце): вул. Олександра Оксанченка, 48 | Оплата: При отриманні', 1000.00, '[{\"product_id\":13,\"title\":\"qwwer\",\"price\":\"1000.00\",\"quantity\":1}]', 'new', '2026-05-11 10:15:48'),
-(23, 14, 'Mizin Vladyslav', '+3801234', 'Нова Пошта: м. Полтава, Відділення №15 (до 30 кг на одне місце): вул. Європейська, 94 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-11 10:23:35'),
-(24, 18, 'sedgher', '+380444444', 'Нова Пошта: м. Полтава, Відділення №13 (до 30 кг на одне місце): вул. Великотирнівська, 35/2 | Оплата: При отриманні', 60.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":5}]', 'new', '2026-05-11 11:23:20'),
-(25, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №14 (до 30 кг на одне місце): вул. Симона Петлюри, 45 | Оплата: При отриманні', 48.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":4}]', 'new', '2026-05-12 10:52:26'),
-(26, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №2 (до 200 кг): вул. Героїв ОУН, 26 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:04:20'),
-(27, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №9 (до 30 кг): вул. Гоголя, 20 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:07:17'),
-(28, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №8 (до 30 кг на одне місце): бульв. Богдана Хмельницького, 21 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-12 11:07:56'),
-(29, 18, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №15 (до 30 кг на одне місце): вул. Європейська, 94 | Оплата: При отриманні', 12.00, '[{\"product_id\":8,\"title\":\"Сосисонка\",\"price\":\"12.00\",\"quantity\":1}]', 'new', '2026-05-13 18:54:38');
+(43, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №1: вул. Ветеринарна, 22 (заїзд з вул. Європейська | Оплата: При отриманні', 213.00, '[{\"product_id\":25,\"title\":\"213\",\"price\":\"213.00\",\"quantity\":1}]', 'new', '2026-05-14 21:21:43'),
+(44, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №1: вул. Ветеринарна, 22 (заїзд з вул. Європейська | Оплата: Карта', 696969.00, '[{\"product_id\":24,\"title\":\"Бурмалда\",\"price\":\"696969.00\",\"quantity\":1}]', 'new', '2026-05-14 21:22:14'),
+(45, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полтава, Відділення №1: вул. Ветеринарна, 22 (заїзд з вул. Європейська | Оплата: При отриманні', 1000000.00, '[{\"product_id\":23,\"title\":\"12345678901234567890123456789012345678901234567890\",\"price\":\"1000000.00\",\"quantity\":1}]', 'new', '2026-05-14 21:24:21'),
+(46, 14, 'EuroPenetrator', '+380500635285', 'Нова Пошта: м. Полапи, Пункт приймання-видачі (до 30 кг): вул. Незалежності, 194 | Оплата: При отриманні', 1696969.00, '[{\"product_id\":23,\"title\":\"12345678901234567890123456789012345678901234567890\",\"price\":\"1000000.00\",\"quantity\":1},{\"product_id\":24,\"title\":\"Бурмалда\",\"price\":\"696969.00\",\"quantity\":1}]', 'new', '2026-05-14 21:24:59'),
+(47, 14, 'EuroPenetrator', '+380500635285', 'Кур\'єр: м. 1234, вул. 234, буд. 234, кв. 3 | Оплата: При отриманні', 696969.00, '[{\"product_id\":24,\"title\":\"Бурмалда\",\"price\":\"696969.00\",\"quantity\":1}]', 'new', '2026-05-14 21:27:12');
 
 -- --------------------------------------------------------
 
@@ -69,18 +63,20 @@ CREATE TABLE `products` (
   `seller_id` int(11) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
+  `weight` varchar(50) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
-  `image_path` varchar(255) DEFAULT NULL
+  `image_path` varchar(255) DEFAULT NULL,
+  `google_file_id` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Дамп данных таблицы `products`
 --
 
-INSERT INTO `products` (`id`, `seller_id`, `title`, `description`, `price`, `image_path`) VALUES
-(8, 14, 'Сосисонка', NULL, 12.00, 'uploads/1777982579png-klev-club-f5k8-p-taksa-png-15.png'),
-(13, 14, 'qwwer', NULL, 1000.00, 'uploads/1778494448_product.png'),
-(14, 14, 'какащка', NULL, 10000000.00, 'uploads/1778495497_product.png');
+INSERT INTO `products` (`id`, `seller_id`, `title`, `description`, `weight`, `price`, `image_path`, `google_file_id`) VALUES
+(21, 14, 'Сосисонка', NULL, NULL, 1000000.00, 'uploads/1778758905_product.png', NULL),
+(24, 14, 'Бурмалда', NULL, NULL, 696969.00, 'uploads/1778759319_product.png', NULL),
+(25, 14, '213', 'sdgfd', '213', 213.00, 'uploads/1778791846_product.png', NULL);
 
 -- --------------------------------------------------------
 
@@ -105,8 +101,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `verification_code`, `is_verified`) VALUES
 (14, 'EuroPenetrator', 'vladyslav.mizin@gmail.com', '$2y$10$hTPZnW1BnDbapGKlp5.3jucJAIdC8cMEyinbUo0oWo8uK4s4i3za.', 'seller', NULL, 0),
 (17, 'Володіє', 'kakahakona@gmail.com', '$2y$10$own0.qSYbDfdMn6qdaPmyObu2qr.otVIXvqwRZFyD81YkedltnsN2', 'seller', NULL, 0),
-(18, 'Relationship', 'vladyslav.mizin228@gmail.com', '$2y$10$SNLx3DSBH7yNLgwZHaihVOc9C9utg5vN35dNQqK8qwsiWKoJmq5Pa', 'buyer', NULL, 0),
-(23, 'Курсує', 'Arizonchik337@gmail.com', '$2y$10$QfZW0EmtF/kz5HZMjbzP1.2xb/RbDXDlin2z63uOKJ03a9ZNXRbBO', 'buyer', NULL, 0);
+(18, 'Relationship', 'vladyslav.mizin228@gmail.com', '$2y$10$SNLx3DSBH7yNLgwZHaihVOc9C9utg5vN35dNQqK8qwsiWKoJmq5Pa', 'buyer', NULL, 0);
 
 --
 -- Индексы сохранённых таблиц
@@ -141,19 +136,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT для таблицы `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
