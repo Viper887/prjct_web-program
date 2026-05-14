@@ -1,7 +1,6 @@
 <?php 
 require 'config.php'; 
 
-// Перевірка прав доступу
 if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'seller') {
     die("Доступ заборонено. Тільки для продавців.");
 }
@@ -10,20 +9,17 @@ $success_msg = "";
 $error_msg = "";
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    // Очищення вхідних даних
     $title = trim($_POST['title']);
     $price = floatval($_POST['price']);
     $cropped_image = $_POST['cropped_image'] ?? '';
 
-    // --- СЕРВЕРНА ВАЛІДАЦІЯ (PHP) ---
     if(empty($title) || empty($price) || empty($cropped_image)) {
         $error_msg = "Будь ласка, заповніть усі поля та додайте фото!";
     } elseif (mb_strlen($title) < 3 || mb_strlen($title) > 50) {
         $error_msg = "Назва має бути від 3 до 50 символів!";
     } elseif ($price <= 0 || $price > 1000000) {
-        $error_msg = "Ціна має бути в межах від 0.01 до 100,000 грн!";
+        $error_msg = "Ціна має бути в межах від 0.01 до 1,000,000 грн!";
     } else {
-        // Обробка зображення Base64
         $imgData = str_replace('data:image/png;base64,', '', $cropped_image);
         $imgData = str_replace(' ', '+', $imgData);
         $data = base64_decode($imgData);
@@ -63,18 +59,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: #333; }
         .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; box-sizing: border-box; }
-        .form-group input:focus { border-color: #a11e1e; }
         
         #preview-container { 
             width: 100%; height: 250px; border: 2px dashed #ddd; border-radius: 10px; 
             margin-top: 15px; display: flex; align-items: center; justify-content: center; 
             overflow: hidden; background: #f9f9f9; position: relative;
         }
-        #preview-img { max-width: 100%; max-height: 100%; display: none; }
+        #preview-img { max-width: 100%; max-height: 100%; display: none; object-fit: contain; }
         .placeholder-text { color: #aaa; font-size: 14px; text-align: center; padding: 10px; }
-        
-        .btn-file { border: 1px solid #000; padding: 12px; border-radius: 10px; width: 100%; display: block; text-align: center; cursor: pointer; font-weight: bold; box-sizing: border-box; }
-        .btn-file:hover { background: #f0f0f0; }
+        .btn-file { border: 1px solid #000; padding: 12px; border-radius: 10px; width: 100%; display: block; text-align: center; cursor: pointer; font-weight: bold; }
 
         #cropper-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -82,12 +75,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         }
         .cropper-container-box { width: 95%; max-width: 600px; background: white; padding: 20px; border-radius: 15px; }
         .cropper-area { max-height: 60vh; margin-bottom: 20px; overflow: hidden; }
-        
         .submit-btn, .crop-save-btn { background-color: #a11e1e; color: white; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .submit-btn:hover, .crop-save-btn:hover { background-color: #851919; }
-        
-        .error-banner { color: #a11e1e; background: #fdeaea; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #a11e1e; font-size: 14px; }
-        .success-banner { color: #155724; background: #d4edda; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #c3e6cb; font-size: 14px; }
+        .error-banner { color: #a11e1e; background: #fdeaea; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #a11e1e; }
+        .success-banner { color: #155724; background: #d4edda; padding: 12px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body class="add-product-body">
@@ -98,7 +88,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     </div>
 
     <div class="add-card">
-        <!-- Повідомлення про успіх або помилку -->
         <?php if($success_msg): ?>
             <div class="success-banner"><?= $success_msg ?></div>
         <?php endif; ?>
@@ -108,15 +97,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         <?php endif; ?>
 
         <form id="product-form" method="POST">
-            <!-- Назва з обмеженням 3-50 -->
             <div class="form-group">
-                <label>Назва товару (3-50 символів)</label>
+                <label>Назва товару (50 символів)</label>
                 <input type="text" name="title" required minlength="3" maxlength="50" placeholder="Введіть назву" value="<?= htmlspecialchars($_POST['title'] ?? '') ?>">
             </div>
 
-            <!-- Ціна з обмеженням до 1кк -->
             <div class="form-group">
-                <label>Ціна (від 0.01 до 1,000,000 грн)</label>
+                <label>Ціна (грн) (від 0,01 до 1,000,000)</label>
                 <input type="number" name="price" step="0.01" min="0.01" max="1000000" required placeholder="0.00" value="<?= htmlspecialchars($_POST['price'] ?? '') ?>">
             </div>
 
@@ -124,8 +111,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <label>Фото товару</label>
                 <label for="image-input" class="btn-file">Обрати фото</label>
                 <input type="file" id="image-input" accept="image/*" style="display:none;">
-                
-                <!-- Приховане поле для обрізаного фото -->
                 <input type="hidden" name="cropped_image" id="cropped_image_input">
                 
                 <div id="preview-container">
@@ -138,10 +123,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         </form>
     </div>
 
-    <!-- Модальне вікно обрізки -->
     <div id="cropper-modal">
         <div class="cropper-container-box">
-            <h3 style="margin-top:0;">Налаштуйте фото</h3>
+            <h3 style="margin-top:0;">Налаштуйте фото (вільна обрізка)</h3>
             <div class="cropper-area">
                 <img id="cropper-img" style="max-width: 100%;">
             </div>
@@ -159,17 +143,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         const previewImg = document.getElementById('preview-img');
         const placeholderText = document.querySelector('.placeholder-text');
         const croppedInput = document.getElementById('cropped_image_input');
-        const productForm = document.getElementById('product-form');
 
-        // Валідація перед відправкою
-        productForm.addEventListener('submit', function(e) {
-            if (!croppedInput.value) {
-                e.preventDefault();
-                alert("Будь ласка, завантажте та обріжте фото товару!");
-            }
-        });
-
-        // Обробка вибору файлу
         imageInput.addEventListener('change', function(e) {
             const files = e.target.files;
             if (files && files.length > 0) {
@@ -179,30 +153,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                     cropperModal.style.display = 'flex';
                     if (cropper) cropper.destroy();
                     cropper = new Cropper(cropperImg, {
-                        aspectRatio: 1, // Квадратне фото для гарної сітки
+                        aspectRatio: null, // ВІЛЬНА ОБРІЗКА (немає фіксованих пропорцій)
                         viewMode: 1,
-                        autoCropArea: 1,
-                        background: true
+                        autoCropArea: 1
                     });
                 };
                 reader.readAsDataURL(files[0]);
             }
         });
 
-        // Збереження обрізаного результату
         document.getElementById('save-crop').addEventListener('click', function() {
             if (!cropper) return;
             const canvas = cropper.getCroppedCanvas({
-                width: 600, // Оптимальний розмір
-                height: 600
+                maxWidth: 1000, 
+                maxHeight: 1000
             });
             const base64Image = canvas.toDataURL('image/png');
-            
             previewImg.src = base64Image;
             previewImg.style.display = 'block';
             placeholderText.style.display = 'none';
-            
-            croppedInput.value = base64Image; // Передаємо в PHP
+            croppedInput.value = base64Image;
             closeModal();
         });
 
