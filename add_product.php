@@ -20,7 +20,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         $error_msg = "Будь ласка, заповніть усі поля та додайте фото!";
     } elseif (mb_strlen($title) < 3 || mb_strlen($title) > 50) {
         $error_msg = "Назва має бути від 3 до 50 символів!";
-    } elseif ($price <= 0 || $price > 100000) {
+    } elseif ($price <= 0 || $price > 1000000) {
         $error_msg = "Ціна має бути в межах від 0.01 до 100,000 грн!";
     } else {
         // Обробка зображення Base64
