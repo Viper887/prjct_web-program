@@ -177,7 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <input type="text" id="np_city_search" placeholder="Оберіть місто..." autocomplete="off">
                                 <input type="hidden" name="np_city_ref" id="np_city_ref">
                                 <input type="hidden" name="np_city_name" id="np_city_name">
-                                <div id="city_results" class="search-results"></div>
                             </div>
                             <div class="form-group" style="flex:1;">
                                 <label>Відділення / Поштомат</label>
